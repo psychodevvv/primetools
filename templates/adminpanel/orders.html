@@ -1,0 +1,63 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% load shop_extras %}
+{% block title %}Заказы — Админ{% endblock %}
+{% block nav_orders %}active{% endblock %}
+{% block page_title %}Заказы{% endblock %}
+{% block content %}
+
+<div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center;">
+  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+    <a href="/admin-panel/orders/" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Все</a>
+    <a href="/admin-panel/orders/?status=new{% if search_query %}&q={{ search_query }}{% endif %}" class="btn {% if status_filter == 'new' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Новые</a>
+    <a href="/admin-panel/orders/?status=processing{% if search_query %}&q={{ search_query }}{% endif %}" class="btn {% if status_filter == 'processing' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">В обработке</a>
+    <a href="/admin-panel/orders/?status=completed{% if search_query %}&q={{ search_query }}{% endif %}" class="btn {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Завершённые</a>
+    <a href="/admin-panel/orders/?status=cancelled{% if search_query %}&q={{ search_query }}{% endif %}" class="btn {% if status_filter == 'cancelled' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Отменённые</a>
+  </div>
+  <form method="get" style="margin-left:auto; display:flex; gap:0; min-width:260px;">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <div class="search-bar" style="width:100%;">
+      <input type="text" name="q" placeholder="Поиск: № заказа, имя или телефон..." value="{{ search_query }}">
+      <button type="submit">Найти</button>
+    </div>
+  </form>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Клиент</th>
+          <th>Телефон</th>
+          <th>Позиций</th>
+          <th>Сумма</th>
+          <th>Статус</th>
+          <th>Дата</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="color:#fff; font-weight:600;">{{ order.pk }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td><span class="phone-display" style="color:var(--accent);">{{ order.customer_phone }}</span></td>
+          <td style="color:#aaa;">{{ order.items.count }}</td>
+          <td style="font-size:15px; font-weight:700; color:var(--accent);">{{ order.total|money }} тг</td>
+          <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+          <td style="color:var(--muted); font-size:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+          <td><a href="/admin-panel/orders/{{ order.pk }}/" class="btn btn-outline btn-sm">Открыть</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:32px; color:var(--muted);">
+          {% if search_query %}Заказов по запросу «{{ search_query }}» не найдено{% else %}Заказов нет{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include 'adminpanel/_pagination.html' %}
+{% endblock %}

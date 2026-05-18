@@ -1,0 +1,33 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}Покупатель #{{ customer.pk }} — Админ{% endblock %}
+{% block nav_customers %}active{% endblock %}
+{% block page_title %}Покупатель #{{ customer.pk }}{% endblock %}
+{% block content %}
+
+<div style="max-width:480px;">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Имя *</label>
+          <input type="text" name="first_name" class="form-control" value="{{ customer.first_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Фамилия</label>
+          <input type="text" name="last_name" class="form-control" value="{{ customer.last_name }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Телефон *</label>
+        <input type="tel" name="phone" class="form-control" value="{{ customer.phone }}" required>
+        <div style="font-size:12px; color:#555; margin-top:4px;">По этому номеру покупатель входит на сайт (код из SMS).</div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="/admin-panel/customers/" class="btn btn-outline">Назад</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

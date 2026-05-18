@@ -1,0 +1,59 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}{% if product %}Редактировать{% else %}Добавить{% endif %} товар — Админ{% endblock %}
+{% block nav_products %}active{% endblock %}
+{% block page_title %}{% if product %}Редактировать товар{% else %}Добавить товар{% endif %}{% endblock %}
+{% block content %}
+
+<div style="max-width:700px;">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group" style="grid-column:span 2;">
+          <label class="form-label">Название *</label>
+          <input type="text" name="name" class="form-control" value="{{ product.name|default:'' }}" required placeholder="Перфоратор Bosch GBH 2-26 DRE">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Категория *</label>
+          <select name="category" class="form-control" required>
+            <option value="">— выберите —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.pk }}" {% if product.category_id == cat.pk %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Цена (тг) *</label>
+          <input type="number" name="price" class="form-control" value="{{ product.price|default:'' }}" required min="0" step="0.01" placeholder="15000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Бренд</label>
+          <input type="text" name="brand" class="form-control" value="{{ product.brand|default:'' }}" placeholder="Bosch">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Артикул</label>
+          <input type="text" name="article" class="form-control" value="{{ product.article|default:'' }}" placeholder="GBH-2-26-DRE">
+        </div>
+        <div class="form-group" style="grid-column:span 2;">
+          <label class="form-label">Ссылка на фото (URL)</label>
+          <input type="url" name="image_url" class="form-control" value="{{ product.image_url|default:'' }}" placeholder="https://example.com/photo.jpg">
+        </div>
+        <div class="form-group" style="grid-column:span 2;">
+          <label class="form-label">Описание</label>
+          <textarea name="description" class="form-control" rows="4" placeholder="Описание товара...">{{ product.description|default:'' }}</textarea>
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" name="in_stock" {% if not product or product.in_stock %}checked{% endif %} style="width:18px; height:18px; accent-color:var(--orange);">
+            <span style="font-size:14px; font-weight:600; color:#ccc;">В наличии</span>
+          </label>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button type="submit" class="btn btn-primary">{% if product %}Сохранить изменения{% else %}Добавить товар{% endif %}</button>
+        <a href="/admin-panel/products/" class="btn btn-outline">Отмена</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

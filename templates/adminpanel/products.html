@@ -1,0 +1,86 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% load shop_extras %}
+{% block title %}Товары — Админ{% endblock %}
+{% block nav_products %}active{% endblock %}
+{% block page_title %}Товары{% endblock %}
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <form method="get" style="display:flex; gap:8px; align-items:center;">
+      {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+      <select name="cat" onchange="this.form.submit()" class="form-control" style="width:200px;">
+        <option value="">Все категории</option>
+        {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if cat_filter == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <form method="get" style="display:flex; gap:0;">
+      {% if cat_filter %}<input type="hidden" name="cat" value="{{ cat_filter }}">{% endif %}
+      <div class="search-bar">
+        <input type="text" name="q" placeholder="Поиск по названию, артикулу, бренду..." value="{{ search_query }}" style="width:280px;">
+        <button type="submit">Найти</button>
+      </div>
+    </form>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <a href="/admin-panel/excel/import/" class="btn btn-outline btn-sm">📥 Импорт Excel</a>
+    <a href="/admin-panel/excel/template/" class="btn btn-outline btn-sm">📄 Шаблон</a>
+    <a href="/admin-panel/products/add/" class="btn btn-primary btn-sm">+ Добавить товар</a>
+  </div>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Название</th>
+          <th>Категория</th>
+          <th>Бренд</th>
+          <th>Артикул</th>
+          <th>Цена</th>
+          <th>Наличие</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td style="color:var(--muted);">{{ product.pk }}</td>
+          <td style="color:#fff; max-width:300px;">
+            <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px;">{{ product.name }}</div>
+          </td>
+          <td style="color:#888; font-size:13px;">{{ product.category.name }}</td>
+          <td style="color:var(--accent); font-size:13px;">{{ product.brand|default:"—" }}</td>
+          <td style="color:var(--muted); font-size:12px; font-family:monospace;">{{ product.article|default:"—" }}</td>
+          <td style="font-size:15px; font-weight:700; color:var(--accent); white-space:nowrap;">{{ product.price|money }} тг</td>
+          <td>
+            {% if product.in_stock %}
+            <span style="color:#86efac; font-size:12px; font-weight:600;">● Есть</span>
+            {% else %}
+            <span style="color:var(--muted); font-size:12px;">○ Нет</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <a href="/admin-panel/products/{{ product.pk }}/edit/" class="btn btn-outline btn-sm">Ред.</a>
+            <form method="post" action="/admin-panel/products/{{ product.pk }}/delete/" style="display:inline;" onsubmit="return confirm('Удалить товар?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:32px; color:var(--muted);">
+          {% if search_query %}Товаров по запросу «{{ search_query }}» не найдено{% else %}Товаров нет. <a href="/admin-panel/excel/import/">Загрузить через Excel</a>{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include 'adminpanel/_pagination.html' %}
+{% endblock %}

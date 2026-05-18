@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Заказ оформлен — ПрофИнструмент{% endblock %}
+{% block content %}
+<div class="container section" style="display:flex;justify-content:center;padding:90px 20px;">
+  <div style="max-width:560px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:48px 40px;text-align:center;box-shadow:var(--shadow);">
+    <div style="width:88px;height:88px;border-radius:50%;background:#e9f8ed;display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px;">
+      <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,5vw,52px);letter-spacing:1.5px;color:var(--heading);margin-bottom:10px;">ЗАКАЗ #{{ order.pk }} ОФОРМЛЕН</h1>
+    <p style="font-size:16px;color:var(--text-muted);margin-bottom:6px;">Спасибо, <strong style="color:var(--heading);">{{ order.customer_name }}</strong>!</p>
+    <p style="color:var(--text-muted);margin-bottom:32px;font-size:15px;">Мы свяжемся с вами по номеру <strong class="phone-display" style="color:var(--accent);">{{ order.customer_phone }}</strong> в ближайшее время.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/" class="btn btn-outline btn-lg">На главную</a>
+      <a href="/catalog/" class="btn btn-primary btn-lg">Продолжить покупки</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

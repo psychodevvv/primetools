@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Вход — ПрофИнструмент{% endblock %}
+{% block cat_nav %}{% endblock %}
+{% block content %}
+<div class="container" style="display:flex;justify-content:center;padding:70px 20px;">
+  <div style="width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:26px;">
+      <h1 style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:1.5px;color:var(--heading);margin-bottom:4px;">ВХОД</h1>
+      <p style="color:var(--text-muted);font-size:14px;">
+        {% if stage == 'code' %}Введите код из SMS{% else %}Вход по коду из SMS — пароль не нужен{% endif %}
+      </p>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:34px;box-shadow:var(--shadow);">
+      {% if stage == 'code' %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Код подтверждения</label>
+          <input type="text" name="code" class="form-control" inputmode="numeric" maxlength="4"
+                 placeholder="0000" autocomplete="one-time-code" autofocus required
+                 style="letter-spacing:8px;font-size:20px;text-align:center;font-weight:700;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">Войти</button>
+      </form>
+      <div style="text-align:center;margin-top:18px;font-size:14px;">
+        <a href="/account/login/" style="color:var(--text-muted);">← Изменить номер</a>
+      </div>
+      {% else %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Номер телефона</label>
+          <input type="tel" name="phone" class="form-control" data-phone placeholder="+7 (___) ___ __ __" autofocus required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">Получить код</button>
+      </form>
+      <div style="text-align:center;margin-top:22px;padding-top:22px;border-top:1px solid var(--border);color:var(--text-muted);font-size:14px;">
+        Нет аккаунта? <a href="/account/register/" style="color:var(--accent);font-weight:700;">Зарегистрироваться</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Виртуальное окружение
+venv/
+env/
+.venv/
+
+# Django
+db.sqlite3
+db.sqlite3.gz
+*.gz
+/staticfiles/
+/media/
+*.log
+
+# Секреты — НЕ коммитить!
+.env
+
+# Каталоги/фиды для импорта
+*.yml
+*.xlsx
+!products_template.xlsx
+
+# Редакторы / ОС
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

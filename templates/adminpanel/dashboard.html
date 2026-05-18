@@ -1,0 +1,71 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% load shop_extras %}
+{% block title %}Дашборд — Админ{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% block content %}
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-card__value">{{ new_orders }}</div>
+    <div class="stat-card__label">Новых заказов</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#1E88E5;">
+    <div class="stat-card__value" style="color:#64B5F6;">{{ total_orders }}</div>
+    <div class="stat-card__label">Всего заказов</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#43A047;">
+    <div class="stat-card__value" style="color:#81C784;">{{ total_products }}</div>
+    <div class="stat-card__label">Товаров</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#777;">
+    <div class="stat-card__value" style="color:#aaa;">{{ total_categories }}</div>
+    <div class="stat-card__label">Категорий</div>
+  </div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+  <h2 style="font-size:22px;">Последние заказы</h2>
+  <a href="/admin-panel/orders/" class="btn btn-outline btn-sm">Все заказы →</a>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Клиент</th>
+          <th>Телефон</th>
+          <th>Товары</th>
+          <th>Сумма</th>
+          <th>Статус</th>
+          <th>Дата</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="color:#fff; font-weight:700;">{{ order.pk }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td><span class="phone-display" style="color:var(--accent);">{{ order.customer_phone }}</span></td>
+          <td style="color:#777; font-size:13px;">
+            {% for item in order.items.all %}{{ item.product_name }} ×{{ item.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </td>
+          <td style="font-size:16px; font-weight:700; color:var(--accent); white-space:nowrap;">{{ order.total|money }} тг</td>
+          <td>
+            <span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span>
+          </td>
+          <td style="color:#777; font-size:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+          <td><a href="/admin-panel/orders/{{ order.pk }}/" class="btn btn-outline btn-sm">Открыть</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:32px; color:#555;">Заказов пока нет</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

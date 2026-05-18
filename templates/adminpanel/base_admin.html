@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Админ-панель{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #f97316; --accent-hover: #ea6c0b;
+      --bg: #0f1623; --sidebar: #151d2e; --card: #1a2236;
+      --border: #243047; --text: #e2e8f0; --muted: #6b7280;
+      --success: #22c55e; --danger: #ef4444; --info: #3b82f6;
+      --radius: 8px; --radius-sm: 5px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; display: flex; min-height: 100vh; }
+    a { color: var(--accent); text-decoration: none; }
+    h1,h2,h3 { font-weight: 700; letter-spacing: -.2px; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 230px; background: var(--sidebar); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; font-weight: 400; letter-spacing: 2px;
+      color: #fff;
+    }
+    .sidebar-logo span { color: var(--accent); }
+    .sidebar-logo small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+    .sidebar-label {
+      padding: 16px 20px 4px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted);
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 20px; color: #8896a9; font-size: 14px; font-weight: 500;
+      border-left: 2px solid transparent; transition: all .15s;
+    }
+    .sidebar-link:hover { color: #fff; background: rgba(249,115,22,.06); }
+    .sidebar-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(249,115,22,.08); }
+    .sidebar-link .icon { width: 16px; text-align: center; font-size: 13px; }
+    .sidebar-bottom { margin-top: auto; padding: 14px 20px; border-top: 1px solid var(--border); }
+
+    /* MAIN */
+    .main { margin-left: 230px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar {
+      background: var(--sidebar); border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 17px; font-weight: 700; color: #fff; }
+    .topbar-user { font-size: 13px; color: var(--muted); }
+    .topbar-user span { color: var(--accent); font-weight: 600; }
+    .content { padding: 24px 28px; flex: 1; }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; border-top: 3px solid var(--accent);
+    }
+    .stat-card__value { font-size: 36px; font-weight: 700; color: #fff; line-height: 1; }
+    .stat-card__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-top: 4px; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: rgba(0,0,0,.2); padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 20px; }
+    .badge-new { background: rgba(249,115,22,.15); color: var(--accent); }
+    .badge-processing { background: rgba(59,130,246,.15); color: #93c5fd; }
+    .badge-completed { background: rgba(34,197,94,.15); color: #86efac; }
+    .badge-cancelled { background: rgba(107,114,128,.12); color: var(--muted); }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: all .15s; border-radius: var(--radius-sm); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-outline { background: transparent; border-color: var(--border); color: #8896a9; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-danger:hover { background: #dc2626; color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+
+    /* PAGINATION */
+    .admin-pagination { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 18px; }
+    .page-btn {
+      min-width: 34px; height: 34px; padding: 0 9px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text); font-size: 13px; font-weight: 600; transition: all .15s;
+    }
+    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-btn--active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .page-btn--active:hover { color: #fff; }
+    .page-dots { color: var(--muted); padding: 0 4px; }
+    .page-info { color: var(--muted); font-size: 12px; margin-left: 8px; }
+
+    /* FORMS */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 5px; }
+    .form-control { width: 100%; background: rgba(0,0,0,.2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: border-color .15s; border-radius: var(--radius-sm); }
+    .form-control:focus { border-color: var(--accent); }
+    select.form-control option { background: #1a2236; }
+    textarea.form-control { resize: none; }
+
+    /* SEARCH BAR */
+    .search-bar { display: flex; gap: 0; }
+    .search-bar input {
+      flex: 1; background: rgba(0,0,0,.2); border: 1px solid var(--border);
+      border-right: none; color: var(--text); padding: 8px 14px;
+      font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm); transition: border-color .15s;
+    }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar input::placeholder { color: var(--muted); }
+    .search-bar button {
+      background: var(--accent); border: none; padding: 8px 16px;
+      color: white; cursor: pointer; font-size: 13px; font-family: 'Inter', sans-serif;
+      font-weight: 600; transition: background .15s;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .search-bar button:hover { background: var(--accent-hover); }
+
+    /* MESSAGES */
+    .messages { list-style: none; margin-bottom: 16px; }
+    .messages li { padding: 10px 14px; margin-bottom: 6px; font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); }
+    .messages .success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: #86efac; }
+    .messages .error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: #fca5a5; }
+    .messages .warning { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.2); color: #fdba74; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Проф<span>Инструмент</span><small>Панель управления</small></div>
+
+  <div class="sidebar-label">Главное</div>
+  <a href="/admin-panel/" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+    <span class="icon">📊</span> Дашборд
+  </a>
+  <a href="/admin-panel/orders/" class="sidebar-link {% block nav_orders %}{% endblock %}">
+    <span class="icon">📦</span> Заказы
+  </a>
+  <a href="/admin-panel/customers/" class="sidebar-link {% block nav_customers %}{% endblock %}">
+    <span class="icon">👤</span> Покупатели
+  </a>
+
+  <div class="sidebar-label">Каталог</div>
+  <a href="/admin-panel/products/" class="sidebar-link {% block nav_products %}{% endblock %}">
+    <span class="icon">🔧</span> Товары
+  </a>
+  <a href="/admin-panel/categories/" class="sidebar-link {% block nav_categories %}{% endblock %}">
+    <span class="icon">📂</span> Категории
+  </a>
+
+  <div class="sidebar-label">Импорт</div>
+  <a href="/admin-panel/excel/import/" class="sidebar-link {% block nav_excel %}{% endblock %}">
+    <span class="icon">📥</span> Загрузить Excel
+  </a>
+  <a href="/admin-panel/excel/template/" class="sidebar-link">
+    <span class="icon">📄</span> Скачать шаблон
+  </a>
+
+  <div class="sidebar-label">Искусственный интеллект</div>
+  <a href="/admin-panel/ai/" class="sidebar-link {% block nav_ai %}{% endblock %}">
+    <span class="icon">✨</span> ИИ-обработка
+  </a>
+
+  <div class="sidebar-bottom">
+    <a href="/admin-panel/logout/" class="sidebar-link" style="padding:0; color:var(--muted);">
+      <span class="icon">🚪</span> Выйти
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Панель управления{% endblock %}</div>
+    <div class="topbar-user">Администратор: <span>{{ request.session.admin_username }}</span></div>
+  </div>
+
+  <div class="content">
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+function formatPhoneDisplay(raw) {
+  var d = raw.replace(/\D/g,'');
+  if (d.startsWith('7') && d.length===11) d = d.slice(1);
+  if (d.length===10) return '+7 ('+d.slice(0,3)+') '+d.slice(3,6)+' '+d.slice(6,8)+' '+d.slice(8,10);
+  return raw;
+}
+document.querySelectorAll('.phone-display').forEach(function(el){
+  el.textContent = formatPhoneDisplay(el.textContent.trim());
+});
+</script>
+</body>
+</html>

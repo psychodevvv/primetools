@@ -1,0 +1,107 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}Обработка товаров — Админ{% endblock %}
+{% block nav_ai %}active{% endblock %}
+{% block page_title %}Обработка товаров{% endblock %}
+{% block content %}
+
+<div style="max-width:760px;">
+
+  <div class="card" style="margin-bottom:16px; border-left:4px solid var(--accent); padding:16px 20px;">
+    <p style="color:#9aa; font-size:13px; line-height:1.7;">
+      Здесь товары из прайс-листа автоматически получают
+      <strong style="color:#cbd;">категории</strong> (по ключевым словам в названии),
+      а также <strong style="color:#cbd;">фотографии и описания</strong>
+      со страниц товаров поставщика.
+    </p>
+  </div>
+
+  <!-- КАТЕГОРИИ -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div>
+        <h2 style="font-size:18px; color:#fff; margin-bottom:4px;">🏷️ Распознавание категорий</h2>
+        <p style="font-size:13px; color:#888;">
+          Товаров без нормальной категории:
+          <strong style="color:var(--accent); font-size:15px;">{{ uncategorized }}</strong>
+        </p>
+      </div>
+      <form method="post" action="/admin-panel/ai/categorize/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" {% if uncategorized == 0 %}disabled style="opacity:.5;cursor:not-allowed;"{% endif %}>
+          🏷️ Распознать категории
+        </button>
+      </form>
+    </div>
+    <p style="margin-top:12px; font-size:12px; color:#666; line-height:1.6;">
+      Категории определяются по ключевым словам в названии («бур», «саморез»,
+      «розетка», «болгарка» и т.д.) — <strong style="color:#888;">мгновенно, бесплатно,
+      без интернета и лимитов</strong>. Один клик обрабатывает сразу все товары.
+    </p>
+    {% if uncategorized == 0 %}
+    <p style="margin-top:8px; font-size:13px; color:#86efac;">✓ Все товары распределены по категориям.</p>
+    {% endif %}
+  </div>
+
+  <!-- ФОТО И ОПИСАНИЯ -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div>
+        <h2 style="font-size:18px; color:#fff; margin-bottom:4px;">🖼️ Фото, описания, характеристики</h2>
+        <p style="font-size:13px; color:#888;">
+          Товаров без фото / описания / характеристик (со ссылкой на источник):
+          <strong style="color:var(--accent); font-size:15px;">{{ need_info }}</strong>
+        </p>
+      </div>
+      <form method="post" action="/admin-panel/ai/images/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" {% if need_info == 0 %}disabled style="opacity:.5;cursor:not-allowed;"{% endif %}>
+          🖼️ Загрузить фото и описания
+        </button>
+        {# кнопка грузит фото, описание и характеристики со страницы товара #}
+      </form>
+    </div>
+    <p style="margin-top:12px; font-size:12px; color:#666; line-height:1.6;">
+      Фото и описание берутся со страницы товара по ссылке из прайс-листа (например
+      <code style="color:#888;">ecogr.kz/product/...</code>). Один клик обрабатывает
+      несколько сотен товаров — нажимайте повторно, пока счётчик не дойдёт до нуля.<br>
+      Чтобы загрузить для <strong style="color:#cbd;">всех товаров сразу</strong> без
+      нажатий — выполните в терминале:
+      <code style="color:var(--accent);">python manage.py fetch_images</code><br>
+      Если у товара нет ссылки на источник — добавьте фото и описание вручную в карточке.
+    </p>
+    {% if need_info == 0 %}
+    <p style="margin-top:8px; font-size:13px; color:#86efac;">✓ Для всех товаров со ссылками фото и описания загружены.</p>
+    {% endif %}
+  </div>
+
+  <!-- ПОИСК НА САЙТЕ ПОСТАВЩИКА -->
+  <div class="card">
+    <h2 style="font-size:18px; color:#fff; margin-bottom:4px;">🔎 Поиск на сайте поставщика</h2>
+    <p style="font-size:13px; color:#888; margin-bottom:14px;">
+      Товаров без фото и без ссылки на источник (но с артикулом):
+      <strong style="color:var(--accent); font-size:15px;">{{ no_link }}</strong>
+    </p>
+    <form method="post" action="/admin-panel/ai/site-search/" style="display:flex; gap:8px; flex-wrap:wrap;">
+      {% csrf_token %}
+      <input type="url" name="site_url" class="form-control" style="flex:1; min-width:240px;"
+             placeholder="https://сайт-поставщика.kz" required>
+      <button type="submit" class="btn btn-primary" {% if no_link == 0 %}disabled style="opacity:.5;cursor:not-allowed;"{% endif %}>
+        🔎 Найти на сайте
+      </button>
+    </form>
+    <p style="margin-top:12px; font-size:12px; color:#666; line-height:1.6;">
+      Если в прайс-листе нет ссылок на товары — укажите адрес сайта поставщика
+      (например <code style="color:#888;">https://technosector.kz</code>). Система будет
+      искать каждый товар <strong style="color:#888;">по артикулу</strong>, открывать его
+      страницу и забирать фото, описание и характеристики. Один клик — несколько сотен
+      товаров, нажимайте повторно.<br>
+      Работает не на всех сайтах (зависит от устройства поиска на сайте). Самый надёжный
+      способ — импорт <strong style="color:#cbd;">YML-фида</strong>, где все данные уже есть.
+    </p>
+    {% if no_link == 0 %}
+    <p style="margin-top:8px; font-size:13px; color:#86efac;">✓ Нет товаров, требующих поиска на сайте.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}Оформление заказа — ПрофИнструмент{% endblock %}
+{% block content %}
+<div class="container section">
+  <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,6.6vw,46px);letter-spacing:1.5px;margin-bottom:30px;color:var(--heading);line-height:1;">ОФОРМЛЕНИЕ ЗАКАЗА</h1>
+  <div class="checkout-layout">
+    <div class="checkout-panel">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:24px;color:var(--heading);">Ваши данные</h2>
+      <form method="post">
+        {% csrf_token %}
+        <div class="checkout-fields">
+          <div class="form-group">
+            <label class="form-label">Имя *</label>
+            <input type="text" name="name" class="form-control" placeholder="Ваше имя" value="{{ customer_name }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Телефон *</label>
+            <input type="tel" name="phone" class="form-control" data-phone placeholder="+7 (___) ___ __ __" value="{{ customer_phone }}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Комментарий к заказу</label>
+          <textarea name="comment" class="form-control" rows="3" placeholder="Уточнения, вопросы по доставке..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+          Подтвердить заказ
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="checkout-summary">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:18px;color:var(--heading);padding-bottom:14px;border-bottom:1px solid var(--border);">ВАШ ЗАКАЗ</h3>
+      {% for item in cart_items %}
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;gap:12px;">
+        <span style="color:var(--text-muted);font-size:14px;flex:1;line-height:1.4;">{{ item.name }} <span style="color:var(--text-dim);">×{{ item.quantity }}</span></span>
+        <span style="color:var(--heading);font-weight:700;white-space:nowrap;">{{ item.subtotal|money }} тг</span>
+      </div>
+      {% endfor %}
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;display:flex;justify-content:space-between;font-size:22px;font-weight:800;">
+        <span style="color:var(--heading);">Итого</span>
+        <span style="color:var(--accent);">{{ total|money }} тг</span>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  .checkout-layout { display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start; }
+  .checkout-panel {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:32px; box-shadow:var(--shadow);
+  }
+  .checkout-fields { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .checkout-summary {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px; position:sticky; top:96px; box-shadow:var(--shadow);
+  }
+  @media (max-width:768px) {
+    .checkout-layout { grid-template-columns:1fr; }
+    .checkout-summary { position:static; order:-1; }
+  }
+  @media (max-width:560px) {
+    .checkout-panel { padding:20px; }
+    .checkout-fields { grid-template-columns:1fr; gap:0; }
+  }
+</style>
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('input[data-phone]').forEach(function(input) {
+  if (input.value) {
+    var raw = input.value.replace(/\D/g,'');
+    if (raw.startsWith('7') && raw.length===11) raw = raw.slice(1);
+    if (raw.length===10) input.value = '+7 ('+raw.slice(0,3)+') '+raw.slice(3,6)+' '+raw.slice(6,8)+' '+raw.slice(8,10);
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

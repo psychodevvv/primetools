@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}Поиск: {{ query }} — ПрофИнструмент{% endblock %}
+{% block content %}
+<div class="container section">
+  <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(27px,6.5vw,40px);letter-spacing:1px;color:var(--heading);margin-bottom:6px;line-height:1.05;">РЕЗУЛЬТАТЫ ПОИСКА</h1>
+  <p style="color:var(--text-muted);font-size:14px;margin-bottom:30px;">По запросу «<strong style="color:var(--heading);">{{ query }}</strong>» найдено: {{ products|length }} товаров</p>
+
+  {% if products %}
+  <div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+      <a href="/product/{{ product.pk }}/" class="product-card__img">
+        {% if not product.in_stock %}<span class="stock-badge">Уточните наличие</span>{% endif %}
+        {% if product.image_url %}<img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy">
+        {% else %}<span class="no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg></span>{% endif %}
+      </a>
+      <div class="product-card__body">
+        {% if product.brand %}<div class="product-card__brand">{{ product.brand }}</div>{% endif %}
+        <a href="/product/{{ product.pk }}/" class="product-card__name">{{ product.name }}</a>
+        <div class="product-card__price">{{ product.price|money }} <span class="cur">тг</span></div>
+      </div>
+      <div class="product-card__footer">
+        <a href="/product/{{ product.pk }}/" class="btn btn-outline btn-sm">Подробнее</a>
+        <button class="btn btn-primary btn-sm" onclick="addToCart({{ product.pk }})">В корзину</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:80px 20px;color:var(--text-muted);">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.6" style="margin-bottom:16px;"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.7-4.7"/></svg>
+    <p style="font-size:18px;color:var(--heading);margin-bottom:8px;font-weight:600;">Ничего не найдено</p>
+    <a href="/catalog/" class="btn btn-primary" style="margin-top:16px;">Перейти в каталог</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

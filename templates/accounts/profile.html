@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}Профиль — ПрофИнструмент{% endblock %}
+{% block cat_nav %}{% endblock %}
+{% block content %}
+<div class="container section">
+  <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,7vw,46px);letter-spacing:1.5px;margin-bottom:30px;color:var(--heading);line-height:1;">МОЙ ПРОФИЛЬ</h1>
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;" class="profile-layout">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center;box-shadow:var(--shadow);">
+      <div style="width:74px;height:74px;border-radius:50%;background:var(--accent-soft);display:inline-flex;align-items:center;justify-content:center;color:var(--accent);margin-bottom:14px;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <h2 style="font-size:20px;font-weight:700;color:var(--heading);margin-bottom:4px;">{{ customer.full_name }}</h2>
+      <p class="phone-display" style="color:var(--accent);font-size:14px;font-weight:700;margin-bottom:20px;">{{ customer.phone }}</p>
+      <div style="border-top:1px solid var(--border);padding-top:16px;font-size:13px;color:var(--text-muted);margin-bottom:20px;text-align:left;">
+        <div style="margin-bottom:4px;">Дата регистрации</div>
+        <div style="color:var(--heading);font-weight:600;">{{ customer.created_at|date:"d.m.Y" }}</div>
+      </div>
+      <a href="/account/logout/" class="btn btn-outline" style="width:100%;justify-content:center;">Выйти</a>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;margin-bottom:18px;color:var(--heading);">МОИ ЗАКАЗЫ</h2>
+      {% for order in orders %}
+      <div class="order-card" onclick="openOrder({{ order.pk }})">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+          <div>
+            <span style="font-size:17px;font-weight:700;color:var(--heading);">Заказ #{{ order.pk }}</span>
+            <span style="font-size:12px;color:var(--text-dim);margin-left:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span style="font-size:18px;font-weight:800;color:var(--accent);">{{ order.total|money }} тг</span>
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 11px;border-radius:30px;
+              {% if order.status == 'new' %}background:var(--accent-soft);color:var(--accent-dark);
+              {% elif order.status == 'processing' %}background:#e7effd;color:#2f6fed;
+              {% elif order.status == 'completed' %}background:#e9f8ed;color:#1d7a38;
+              {% else %}background:var(--surface-2);color:var(--text-muted);{% endif %}">
+              {{ order.get_status_display }}
+            </span>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">
+          {% for item in order.items.all %}{{ item.product_name }} ×{{ item.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </div>
+        <div style="font-size:12px;color:var(--accent);font-weight:700;margin-top:8px;">Подробнее →</div>
+      </div>
+
+      {# ── Модальное окно с подробностями заказа ── #}
+      <div class="order-modal" id="om-{{ order.pk }}" onclick="if(event.target===this)closeOrder({{ order.pk }})">
+        <div class="order-modal__box">
+          <button type="button" class="order-modal__close" onclick="closeOrder({{ order.pk }})" aria-label="Закрыть">&times;</button>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+            <h3 style="font-size:22px;font-weight:800;color:var(--heading);">Заказ #{{ order.pk }}</h3>
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 11px;border-radius:30px;
+              {% if order.status == 'new' %}background:var(--accent-soft);color:var(--accent-dark);
+              {% elif order.status == 'processing' %}background:#e7effd;color:#2f6fed;
+              {% elif order.status == 'completed' %}background:#e9f8ed;color:#1d7a38;
+              {% else %}background:var(--surface-2);color:var(--text-muted);{% endif %}">
+              {{ order.get_status_display }}
+            </span>
+          </div>
+          <div style="font-size:13px;color:var(--text-dim);margin-bottom:18px;">{{ order.created_at|date:"d.m.Y в H:i" }}</div>
+
+          <div class="order-modal__items">
+            {% for item in order.items.all %}
+            <div class="om-item">
+              <div class="om-thumb">
+                {% if item.product and item.product.image_url %}
+                  <img src="{{ item.product.image_url }}" alt="{{ item.product_name }}" loading="lazy">
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>
+                {% endif %}
+              </div>
+              <div style="min-width:0;flex:1;">
+                {% if item.product %}
+                <a href="/product/{{ item.product.pk }}/" style="font-size:14px;font-weight:600;color:var(--heading);line-height:1.35;display:block;">{{ item.product_name }}</a>
+                {% else %}
+                <div style="font-size:14px;font-weight:600;color:var(--heading);line-height:1.35;">{{ item.product_name }}</div>
+                {% endif %}
+                {% if item.product_article %}
+                <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Артикул: <span style="font-family:monospace;">{{ item.product_article }}</span></div>
+                {% endif %}
+                <div style="font-size:13px;color:var(--text-muted);margin-top:5px;">
+                  {{ item.product_price|money }} тг × {{ item.quantity }} шт
+                </div>
+              </div>
+              <div style="font-size:15px;font-weight:800;color:var(--heading);white-space:nowrap;">{{ item.subtotal|money }} тг</div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if order.comment %}
+          <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Комментарий к заказу</div>
+            <div style="font-size:14px;color:var(--heading);line-height:1.5;white-space:pre-line;">{{ order.comment }}</div>
+          </div>
+          {% endif %}
+
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:16px;padding-top:14px;">
+            <span style="font-size:15px;font-weight:700;color:var(--text-muted);">Итого</span>
+            <span style="font-size:24px;font-weight:800;color:var(--accent);">{{ order.total|money }} тг</span>
+          </div>
+
+          <div style="font-size:12px;color:var(--text-dim);margin-top:14px;line-height:1.7;">
+            Получатель: <span style="color:var(--text-muted);">{{ order.customer_name }}</span><br>
+            Телефон: <span style="color:var(--text-muted);">{{ order.customer_phone }}</span>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.6" style="margin-bottom:14px;"><path d="M5 7h14l-1.2 9.4a2 2 0 0 1-2 1.6H8.2a2 2 0 0 1-2-1.6L5 7Z"/><path d="M8.5 7V5.5a3.5 3.5 0 0 1 7 0V7"/></svg>
+        <p style="color:var(--text-muted);font-size:15px;margin-bottom:20px;">У вас пока нет заказов</p>
+        <a href="/catalog/" class="btn btn-primary">Перейти в каталог</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+@media(max-width:768px){ .profile-layout{ grid-template-columns:1fr !important; } }
+
+.order-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px; margin-bottom:12px;
+  box-shadow:var(--shadow); cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, transform .1s;
+}
+.order-card:hover { border-color:var(--accent); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+.order-card:active { transform:scale(.995); }
+
+.order-modal {
+  display:none; position:fixed; inset:0; z-index:1200;
+  align-items:center; justify-content:center; padding:20px;
+  background:rgba(15,18,24,.55);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+}
+.order-modal.open { display:flex; animation:omFade .15s ease; }
+@keyframes omFade { from{opacity:0;} to{opacity:1;} }
+
+.order-modal__box {
+  position:relative; background:var(--surface);
+  border:1px solid var(--border); border-radius:var(--radius);
+  width:100%; max-width:560px; max-height:86vh; overflow-y:auto;
+  padding:26px 26px 24px; box-shadow:0 24px 60px rgba(0,0,0,.35);
+  animation:omPop .17s ease;
+}
+@keyframes omPop { from{transform:translateY(14px) scale(.97);opacity:0;} to{transform:none;opacity:1;} }
+
+.order-modal__close {
+  position:absolute; top:12px; right:14px; width:34px; height:34px;
+  border:none; background:var(--surface-2); border-radius:50%;
+  font-size:22px; line-height:1; color:var(--text-muted); cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.order-modal__close:hover { background:var(--accent-soft); color:var(--accent-dark); }
+
+.order-modal__items { display:flex; flex-direction:column; gap:2px; }
+.om-item {
+  display:flex; align-items:center; gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.om-item:last-child { border-bottom:none; }
+.om-thumb {
+  width:62px; height:62px; flex-shrink:0; border-radius:var(--radius-sm);
+  background:var(--surface-2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.om-thumb img { width:100%; height:100%; object-fit:contain; padding:5px; }
+</style>
+
+<script>
+function openOrder(pk){
+  var m=document.getElementById('om-'+pk);
+  if(m){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeOrder(pk){
+  var m=document.getElementById('om-'+pk);
+  if(m){ m.classList.remove('open'); }
+  if(!document.querySelector('.order-modal.open')){ document.body.style.overflow=''; }
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.order-modal.open').forEach(function(m){ m.classList.remove('open'); });
+    document.body.style.overflow='';
+  }
+});
+</script>
+{% endblock %}

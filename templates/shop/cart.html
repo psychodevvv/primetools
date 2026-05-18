@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}Корзина — ПрофИнструмент{% endblock %}
+{% block content %}
+<div class="container section">
+  <h1 class="page-title">КОРЗИНА</h1>
+
+  {% if items %}
+  <div class="cart-layout">
+    <div>
+      {% for item in items %}
+      <div class="cart-item" id="cart-item-{{ item.id }}">
+        <div class="ci-photo">
+          {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}">
+          {% else %}<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.6"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>{% endif %}
+        </div>
+        <div class="ci-info">
+          <div class="ci-name">{{ item.name }}</div>
+          <div class="ci-price">{{ item.price|money }} тг × {{ item.quantity }}</div>
+        </div>
+        <div class="ci-qty">
+          <button onclick="updateQty('{{ item.id }}', {{ item.quantity|add:-1 }})" aria-label="Меньше">−</button>
+          <span>{{ item.quantity }}</span>
+          <button onclick="updateQty('{{ item.id }}', {{ item.quantity|add:1 }})" aria-label="Больше">+</button>
+        </div>
+        <div class="ci-sum">{{ item.subtotal|money }} тг</div>
+        <button class="ci-del" onclick="removeItem('{{ item.id }}')" aria-label="Удалить">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="cart-summary">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:18px;color:var(--heading);padding-bottom:14px;border-bottom:1px solid var(--border);">ИТОГО</h3>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;color:var(--text-muted);font-size:14px;">
+        <span>Товары ({{ items|length }})</span>
+        <span>{{ total|money }} тг</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:22px;font-weight:800;color:var(--heading);border-top:1px solid var(--border);padding-top:14px;margin-top:10px;">
+        <span>Сумма</span>
+        <span style="color:var(--accent);">{{ total|money }} тг</span>
+      </div>
+      <a href="/checkout/" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px;padding:14px;">
+        Оформить заказ
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="/catalog/" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">Продолжить покупки</a>
+    </div>
+  </div>
+
+  {% else %}
+  <div style="text-align:center;padding:90px 20px;">
+    <div style="width:96px;height:96px;border-radius:50%;background:var(--surface-2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:22px;">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 9.4a2 2 0 0 1-2 1.6H8.2a2 2 0 0 1-2-1.6L5 7Z"/><path d="M8.5 7V5.5a3.5 3.5 0 0 1 7 0V7"/></svg>
+    </div>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1.5px;color:var(--heading);margin-bottom:10px;">КОРЗИНА ПУСТА</h2>
+    <p style="margin-bottom:26px;color:var(--text-muted);font-size:15px;">Добавьте товары из нашего каталога</p>
+    <a href="/catalog/" class="btn btn-primary btn-lg">Перейти в каталог</a>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .page-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(30px,7vw,46px);
+    letter-spacing:1.5px; margin-bottom:30px; color:var(--heading); line-height:1;
+  }
+  .cart-layout { display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start; }
+
+  .cart-item {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; display:flex; gap:16px; align-items:center; margin-bottom:12px;
+    box-shadow:var(--shadow); transition:border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .cart-item:hover { border-color:var(--border-strong); box-shadow:var(--shadow-lg); }
+  .ci-photo {
+    width:80px; height:80px; background:var(--surface-2); border-radius:10px;
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .ci-photo img { width:100%; height:100%; object-fit:cover; }
+  .ci-info { flex:1; min-width:0; }
+  .ci-name { font-weight:600; color:var(--heading); margin-bottom:5px; font-size:15px; }
+  .ci-price { font-size:14px; color:var(--accent); font-weight:700; }
+  .ci-qty { display:flex; align-items:center; gap:6px; }
+  .ci-qty button {
+    background:var(--surface-2); border:1px solid var(--border-strong); color:var(--heading);
+    width:34px; height:34px; cursor:pointer; font-size:18px; border-radius:8px;
+    transition:border-color .15s, color .15s, transform .12s; line-height:1;
+  }
+  .ci-qty button:hover { border-color:var(--accent); color:var(--accent); }
+  .ci-qty button:active { transform:scale(.88); }
+  .ci-qty span { color:var(--heading); font-weight:700; min-width:28px; text-align:center; font-size:16px; }
+  .ci-sum { font-size:19px; font-weight:800; color:var(--heading); min-width:115px; text-align:right; }
+  .ci-del {
+    background:transparent; border:none; color:var(--text-dim); cursor:pointer;
+    padding:6px; border-radius:8px; transition:color .15s, background .15s; display:flex;
+  }
+  .ci-del:hover { color:var(--danger); background:#fdeaea; }
+
+  .cart-summary {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px; position:sticky; top:96px; box-shadow:var(--shadow);
+  }
+
+  @media (max-width:768px) { .cart-layout { grid-template-columns:1fr; } }
+  @media (max-width:560px) {
+    .cart-item {
+      display:grid; gap:10px 12px; padding:14px;
+      grid-template-columns:64px 1fr auto;
+      grid-template-areas:"photo info del" "photo qty sum";
+    }
+    .ci-photo { grid-area:photo; width:64px; height:64px; align-self:start; }
+    .ci-info { grid-area:info; }
+    .ci-del { grid-area:del; align-self:start; padding:3px; }
+    .ci-qty { grid-area:qty; }
+    .ci-sum { grid-area:sum; min-width:0; align-self:center; font-size:17px; }
+    .cart-summary { position:static; }
+  }
+</style>
+
+{% block extra_js %}
+<script>
+async function updateQty(id, qty) {
+  if (qty <= 0) { removeItem(id); return; }
+  const res = await fetch('/cart/update/', {
+    method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body: JSON.stringify({product_id: id, quantity: qty})
+  });
+  if ((await res.json()).success) location.reload();
+}
+async function removeItem(id) {
+  const el = document.getElementById('cart-item-' + id);
+  if (el) { el.style.transition = 'opacity .2s, transform .2s'; el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; }
+  const res = await fetch('/cart/remove/', {
+    method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body: JSON.stringify({product_id: id})
+  });
+  if ((await res.json()).success) location.reload();
+}
+</script>
+{% endblock %}
+{% endblock %}

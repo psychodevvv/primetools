@@ -1,0 +1,94 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% load shop_extras %}
+{% block title %}Заказ #{{ order.pk }} — Админ{% endblock %}
+{% block nav_orders %}active{% endblock %}
+{% block page_title %}Заказ #{{ order.pk }}{% endblock %}
+{% block content %}
+
+<div style="display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start;">
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="font-size:16px; margin-bottom:16px; color:#fff;">Данные клиента</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:3px;">Имя</div>
+          <div style="font-weight:600; color:#fff;">{{ order.customer_name }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:3px;">Телефон</div>
+          <div style="font-weight:600;"><span class="phone-display" style="color:var(--accent);">{{ order.customer_phone }}</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:3px;">Дата заказа</div>
+          <div style="color:#ccc;">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+      </div>
+      {% if order.comment %}
+      <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:5px;">Комментарий</div>
+        <div style="color:#ccc; font-style:italic;">{{ order.comment }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="padding:14px 20px; border-bottom:1px solid var(--border);">
+        <h3 style="font-size:16px; color:#fff;">Состав заказа</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Товар</th>
+            <th>Артикул</th>
+            <th>Цена</th>
+            <th>Кол-во</th>
+            <th>Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+          <tr>
+            <td style="color:#fff;">{{ item.product_name }}</td>
+            <td style="color:var(--muted); font-size:12px; font-family:monospace;">{{ item.product_article|default:"—" }}</td>
+            <td style="color:#aaa;">{{ item.product_price|money }} тг</td>
+            <td style="color:#aaa;">{{ item.quantity }}</td>
+            <td style="font-size:15px; font-weight:700; color:var(--accent);">{{ item.subtotal|money }} тг</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align:right; font-weight:600; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.8px;">Итого</td>
+            <td style="font-size:20px; font-weight:700; color:var(--accent);">{{ order.total|money }} тг</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h3 style="font-size:16px; margin-bottom:14px; color:#fff;">Статус заказа</h3>
+      <div style="margin-bottom:14px;">
+        <span class="badge badge-{{ order.status }}" style="font-size:12px; padding:5px 12px;">{{ order.get_status_display }}</span>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Изменить статус</label>
+          <select name="status" class="form-control">
+            <option value="new" {% if order.status == 'new' %}selected{% endif %}>Новый</option>
+            <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>В обработке</option>
+            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Завершён</option>
+            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Отменён</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Сохранить</button>
+      </form>
+      <div style="margin-top:12px;">
+        <a href="/admin-panel/orders/" class="btn btn-outline btn-sm" style="width:100%; justify-content:center;">← Назад к заказам</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

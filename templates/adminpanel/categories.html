@@ -1,0 +1,46 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}Категории — Админ{% endblock %}
+{% block nav_categories %}active{% endblock %}
+{% block page_title %}Категории{% endblock %}
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;">
+  <span style="color:var(--muted); font-size:13px;">Всего категорий: {{ page_obj.paginator.count }}</span>
+  <a href="/admin-panel/categories/add/" class="btn btn-primary btn-sm">+ Добавить категорию</a>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Название</th>
+          <th>Родитель</th>
+          <th>Slug (URL)</th>
+          <th>Товаров</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="color:var(--muted);">{{ cat.pk }}</td>
+          <td style="color:#fff; font-weight:600;">{{ cat.name }}</td>
+          <td style="color:#888; font-size:13px;">{{ cat.parent.name|default:"—" }}</td>
+          <td style="color:var(--accent); font-family:monospace; font-size:12px;">{{ cat.slug }}</td>
+          <td style="color:#aaa;">{{ cat.products.count }}</td>
+          <td>
+            <a href="/admin-panel/categories/{{ cat.pk }}/edit/" class="btn btn-outline btn-sm">Редактировать</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--muted);">Категорий нет. <a href="/admin-panel/categories/add/">Добавить</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include 'adminpanel/_pagination.html' %}
+{% endblock %}

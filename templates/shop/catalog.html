@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}Каталог — ПрофИнструмент{% endblock %}
+{% block content %}
+<div class="container section">
+  <div class="catalog-layout" style="display:flex;gap:28px;align-items:flex-start;">
+
+    <button type="button" class="catalog-filter-toggle btn btn-outline" onclick="toggleFilters()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+      <span>Фильтры и категории</span>
+    </button>
+
+    <!-- SIDEBAR -->
+    <aside class="catalog-aside" id="catalogAside" style="width:250px;flex-shrink:0;">
+
+      <!-- Категории -->
+      <div class="cat-panel">
+        <div class="cat-panel__head">Категории</div>
+        <div class="cat-panel__body">
+          <a href="/catalog/" class="cat-link {% if not active_category %}active{% endif %}">Все товары</a>
+          <div id="catList">
+            {% for cat in nav_categories %}
+            <a href="/catalog/?cat={{ cat.slug }}"
+               class="cat-link{% if forloop.counter0 >= 10 %} cat-extra{% endif %}{% if active_parent.id == cat.id %} active{% endif %}">{{ cat.name }}</a>
+            {% endfor %}
+          </div>
+          {% if nav_categories|length > 10 %}
+          <button type="button" id="catMore" onclick="toggleCats()" class="cat-more">
+            Ещё {{ nav_categories|length|add:"-10" }} ▾
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Подразделы текущего раздела -->
+      {% if subcategories %}
+      <div class="cat-panel" style="margin-top:14px;">
+        <div class="cat-panel__head">{{ active_parent.name }}</div>
+        <div class="cat-panel__body">
+          <a href="/catalog/?cat={{ active_parent.slug }}"
+             class="cat-link {% if active_category.id == active_parent.id %}active{% endif %}">Весь раздел</a>
+          {% for sub in subcategories %}
+          <a href="/catalog/?cat={{ sub.slug }}"
+             class="cat-link {% if active_category.id == sub.id %}active{% endif %}">{{ sub.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Фильтры -->
+      <form method="get" class="cat-panel" style="margin-top:14px;">
+        <div class="cat-panel__head">Фильтры</div>
+        <div style="padding:14px;">
+          {% if active_category %}<input type="hidden" name="cat" value="{{ active_category.slug }}">{% endif %}
+
+          <label class="form-label">Поиск</label>
+          <input type="text" name="q" class="form-control" value="{{ search_query }}"
+                 placeholder="Название или артикул" style="font-size:13px;">
+
+          <label class="form-label" style="margin-top:14px;">Цена, тг</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" name="price_min" class="form-control" value="{{ price_min }}"
+                   placeholder="от" min="0" style="font-size:13px;">
+            <input type="number" name="price_max" class="form-control" value="{{ price_max }}"
+                   placeholder="до" min="0" style="font-size:13px;">
+          </div>
+
+          {% if brands %}
+          <label class="form-label" style="margin-top:14px;">Бренд</label>
+          <select name="brand" class="form-control" style="font-size:13px;">
+            <option value="">Все бренды</option>
+            {% for b in brands %}
+            <option value="{{ b }}" {% if brand_filter == b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+
+          <label style="display:flex;align-items:center;gap:9px;margin-top:14px;cursor:pointer;font-size:14px;color:var(--text);">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %}
+                   style="width:17px;height:17px;accent-color:var(--accent);">
+            Только в наличии
+          </label>
+
+          <label class="form-label" style="margin-top:14px;">Сортировка</label>
+          <select name="sort" class="form-control" style="font-size:13px;">
+            <option value="" {% if not sort %}selected{% endif %}>По умолчанию</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Сначала дешевле</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Сначала дороже</option>
+            <option value="name" {% if sort == 'name' %}selected{% endif %}>По названию</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center;">Применить</button>
+          <a href="/catalog/{% if active_category %}?cat={{ active_category.slug }}{% endif %}"
+             class="btn btn-outline btn-sm" style="width:100%;margin-top:8px;justify-content:center;">Сбросить фильтры</a>
+        </div>
+      </form>
+    </aside>
+
+    <!-- MAIN -->
+    <div style="flex:1;min-width:0;">
+      <h1 style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;color:var(--heading);line-height:1;">
+        {% if active_category %}{{ active_category.name }}{% else %}Каталог{% endif %}
+      </h1>
+      <div style="font-size:13px;color:var(--text-muted);margin:4px 0 24px;">Найдено товаров: {{ total_count }}</div>
+
+      <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+          <a href="/product/{{ product.pk }}/" class="product-card__img">
+            {% if not product.in_stock %}<span class="stock-badge">Уточните наличие</span>{% endif %}
+            {% if product.image_url %}
+              <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy">
+            {% else %}
+              <span class="no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg></span>
+            {% endif %}
+          </a>
+          <div class="product-card__body">
+            {% if product.brand %}<div class="product-card__brand">{{ product.brand }}</div>{% endif %}
+            <a href="/product/{{ product.pk }}/" class="product-card__name">{{ product.name }}</a>
+            <div class="product-card__price">{{ product.price|money }} <span class="cur">тг</span></div>
+          </div>
+          <div class="product-card__footer">
+            <a href="/product/{{ product.pk }}/" class="btn btn-outline btn-sm">Подробнее</a>
+            <button class="btn btn-primary btn-sm" onclick="addToCart({{ product.pk }})">В корзину</button>
+          </div>
+        </div>
+        {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted);">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.6" style="margin-bottom:16px;"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.7-4.7"/></svg>
+          <p style="font-size:18px;color:var(--heading);margin-bottom:8px;font-weight:600;">Товары не найдены</p>
+          <a href="/catalog/" style="color:var(--accent);font-weight:600;">Сбросить всё</a>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if products.paginator.num_pages > 1 %}
+      <div style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:36px;flex-wrap:wrap;">
+        {% if products.has_previous %}
+        <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ products.previous_page_number }}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+        </a>
+        {% endif %}
+        {% for num in page_range %}
+          {% if num == products.number %}<span class="page-btn page-btn--active">{{ num }}</span>
+          {% elif num == '…' %}<span style="color:var(--text-dim);padding:0 4px;">…</span>
+          {% else %}<a href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ num }}" class="page-btn">{{ num }}</a>{% endif %}
+        {% endfor %}
+        {% if products.has_next %}
+        <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ products.next_page_number }}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .cat-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+  .cat-panel__head { background:var(--heading); padding:12px 16px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#fff; }
+  .cat-panel__body { padding:6px; }
+  .cat-link { display:block; padding:9px 13px; font-size:13.5px; border-radius:var(--radius-sm); color:var(--text); transition:all .15s; }
+  .cat-link:hover { background:var(--surface-2); }
+  .cat-link.active { background:var(--accent-soft); color:var(--accent); font-weight:700; }
+  .cat-extra { display:none; }
+  #catList.expanded .cat-extra { display:block; }
+  .cat-more { width:100%; background:transparent; border:none; border-top:1px solid var(--border); margin-top:4px;
+    padding:10px; cursor:pointer; font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.5px; color:var(--accent); }
+  .page-btn { min-width:38px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center;
+    background:var(--surface); border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+    color:var(--heading); font-size:14px; font-weight:600; transition:all .15s; }
+  .page-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .page-btn--active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .catalog-filter-toggle { display:none; }
+  @media(max-width:768px){
+    .catalog-layout{ flex-direction:column; }
+    .catalog-filter-toggle{ display:flex; width:100%; justify-content:center; }
+    .catalog-aside{ width:100%; display:none; }
+    .catalog-aside.show{ display:block; animation:fadeUp .3s ease; }
+  }
+  @media(max-width:560px){
+    .catalog-layout h1 { font-size:32px !important; }
+  }
+</style>
+
+{% block extra_js %}
+<script>
+function toggleCats() {
+  var list = document.getElementById('catList');
+  var btn = document.getElementById('catMore');
+  var open = list.classList.toggle('expanded');
+  btn.textContent = open ? 'Свернуть ▴' : 'Показать все ▾';
+}
+function toggleFilters() {
+  var aside = document.getElementById('catalogAside');
+  var btn = document.querySelector('.catalog-filter-toggle span');
+  var open = aside.classList.toggle('show');
+  if (btn) btn.textContent = open ? 'Скрыть фильтры' : 'Фильтры и категории';
+}
+</script>
+{% endblock %}
+{% endblock %}
