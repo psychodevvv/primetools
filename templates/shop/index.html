@@ -1,204 +1,345 @@
 {% extends 'base.html' %}
-{% block title %}ПрофИнструмент — Профессиональные инструменты в Казахстане{% endblock %}
+{% load shop_extras %}
+{% block title %}PrimeTools — Профессиональные инструменты в Казахстане{% endblock %}
 {% block extra_css %}
 <style>
-  .hero-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center; position:relative; }
-  .cats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
-  .about-grid { display:grid; grid-template-columns:.95fr 1.05fr; gap:56px; align-items:center; }
-  .why-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-  .delivery-grid { display:grid; grid-template-columns:1fr 1fr; }
-  .cat-card:hover img { transform:scale(1.07); }
-  .cat-card img { transition:transform .5s cubic-bezier(.2,.7,.2,1); }
-  .cat-card:hover .cat-card__go svg { transform:translateX(4px); }
-  .cat-card__go svg { transition:transform .18s; }
-  @media (max-width:960px) {
-    .hero-grid, .about-grid, .delivery-grid { grid-template-columns:1fr; gap:34px; }
-    .cats-grid { grid-template-columns:repeat(3,1fr); }
-    .why-grid { grid-template-columns:repeat(2,1fr); }
-    .hero-pad { padding:48px 0 44px !important; }
-    .delivery-pad { padding:40px 26px !important; }
-    .float-badge-l { left:12px !important; }
-    .float-badge-r { right:12px !important; }
+  /* ── СЛАЙДЕР ── */
+  .promo-slider { position:relative; max-width:1400px; margin:24px auto 8px; padding:0 32px; }
+  .ps-track {
+    position:relative; min-height:300px; border-radius:20px; overflow:hidden;
+    box-shadow:0 10px 40px rgba(15,18,24,.12);
   }
-  @media (max-width:680px) {
-    .cats-grid, .why-grid { grid-template-columns:repeat(2,1fr); }
+  .ps-slide {
+    position:absolute; inset:0; display:flex; align-items:center; padding:32px 62px;
+    opacity:0; transform:scale(1.02); transition:opacity .55s ease, transform .8s ease;
+    pointer-events:none;
+  }
+  .ps-slide.active { opacity:1; transform:scale(1); pointer-events:auto; }
+  .ps-1 { background:linear-gradient(120deg,#cc1f1f 0%,#ea4d2c 70%,#ff7e3a 100%); }
+  .ps-2 { background:linear-gradient(120deg,#181b22 0%,#2d3340 60%,#ea6a1a 130%); }
+  .ps-3 { background:linear-gradient(120deg,#0d9488 0%,#1d7a38 60%,#65b441 110%); }
+  .ps-content { color:#fff; max-width:640px; position:relative; z-index:2; }
+  .ps-eye {
+    display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.18);
+    color:#fff; padding:6px 14px; border-radius:30px; font-size:12px; font-weight:700;
+    text-transform:uppercase; letter-spacing:1.2px; margin-bottom:14px;
+  }
+  .ps-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(32px,4.4vw,58px);
+    line-height:1.02; letter-spacing:1.2px; color:#fff; margin-bottom:12px;
+  }
+  .ps-title em { color:#ffd55a; font-style:normal; }
+  .ps-text { font-size:15px; line-height:1.5; color:rgba(255,255,255,.92); margin-bottom:20px; max-width:480px; }
+  .ps-btn {
+    display:inline-flex; align-items:center; gap:9px; background:#fff; color:#181b22;
+    padding:14px 28px; border-radius:var(--radius-sm); font-weight:800; font-size:14px;
+    text-transform:uppercase; letter-spacing:.8px;
+    box-shadow:0 8px 22px rgba(0,0,0,.18); transition:transform .15s, box-shadow .18s;
+  }
+  .ps-btn:hover { transform:translateY(-2px); box-shadow:0 14px 28px rgba(0,0,0,.22); color:#181b22; }
+  .ps-decor {
+    position:absolute; right:-20px; top:-20px; bottom:-20px; width:55%;
+    background:radial-gradient(circle at 65% 50%,rgba(255,255,255,.22),transparent 60%);
+    pointer-events:none;
+  }
+  .ps-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:42px; height:42px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.18); color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s, transform .15s; z-index:3;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  }
+  .ps-nav:hover { background:rgba(255,255,255,.32); }
+  .ps-prev { left:46px; } .ps-next { right:46px; }
+  .ps-dots {
+    position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:3;
+  }
+  .ps-dot {
+    width:10px; height:10px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,.45); transition:width .25s, background .15s;
+  }
+  .ps-dot.active { background:#fff; width:28px; border-radius:5px; }
+  @media (max-width:768px) {
+    .promo-slider { padding:0 22px; margin-top:14px; }
+    .ps-track { min-height:260px; }
+    .ps-slide { padding:26px 32px; }
+    .ps-prev { left:18px; } .ps-next { right:18px; }
   }
   @media (max-width:560px) {
-    .hero-title { font-size:clamp(33px,8.6vw,52px) !important; letter-spacing:.4px !important; }
-    .hero-stats { gap:16px !important; }
-    .hero-stats > div[style*="width:1px"] { display:none !important; }
-    .hero-stats > div > div:first-child { font-size:36px !important; }
+    .ps-track { min-height:230px; }
+    .ps-nav { display:none; }
+    .ps-slide { padding:22px 22px 46px; }
+    .ps-text { font-size:13px; line-height:1.45; margin-bottom:14px; }
+    .ps-btn { padding:10px 18px; font-size:12px; }
+    .ps-eye { padding:5px 12px; font-size:11px; margin-bottom:10px; }
   }
-  @media (max-width:440px) {
-    .cats-grid, .why-grid { grid-template-columns:1fr; }
+
+  /* ── СТАТЫ ── */
+  .stat-strip {
+    max-width:1400px; margin:30px auto 0; padding:0 32px;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
   }
+  .stat-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 22px; display:flex; align-items:center; gap:14px;
+    box-shadow:var(--shadow);
+    transition:transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .stat-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--border-strong); }
+  .stat-card__icon {
+    width:44px; height:44px; flex-shrink:0; border-radius:11px;
+    display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .stat-card__num { font-family:'Bebas Neue',sans-serif; font-size:28px; line-height:1; color:var(--heading); }
+  .stat-card__lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-top:3px; }
+  @media (max-width:900px) { .stat-strip { grid-template-columns:repeat(2,1fr); padding:0 18px; } }
+
+  /* ── СЕКЦИИ КАТЕГОРИЙ И ТОВАРОВ ── */
+  .home-section { max-width:1400px; margin:50px auto 0; padding:0 32px; }
+  .home-head {
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:20px; gap:16px; flex-wrap:wrap;
+  }
+  .home-head h2 {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,3.4vw,42px);
+    letter-spacing:1.2px; line-height:1; color:var(--heading);
+  }
+  .home-head h2 span.accent { color:var(--accent); }
+  .home-head h2 span.red { color:#cc1f1f; }
+  .home-head a {
+    font-size:13px; font-weight:700; color:var(--accent);
+    text-transform:uppercase; letter-spacing:.6px;
+    display:inline-flex; align-items:center; gap:6px; transition:gap .18s;
+  }
+  .home-head a:hover { gap:11px; }
+
+  /* Карусель категорий — чистые белые карточки */
+  .feat-cats { position:relative; }
+  .feat-cats__scroll {
+    display:grid; grid-auto-flow:column; grid-auto-columns:215px; gap:14px;
+    overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;
+    padding:4px 1px 14px;
+  }
+  .feat-cats__scroll::-webkit-scrollbar { display:none; }
+  .feat-card {
+    scroll-snap-align:start; display:flex; flex-direction:column;
+    background:#fff; border:none; border-radius:var(--radius);
+    overflow:hidden; text-decoration:none; color:inherit;
+    box-shadow:0 1px 4px rgba(15,18,24,.05);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .feat-card:hover { transform:translateY(-6px); box-shadow:0 14px 30px rgba(15,18,24,.12); }
+  .feat-card__img-wrap {
+    aspect-ratio:1/1; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .feat-card__img-wrap img {
+    max-width:82%; max-height:82%; object-fit:contain;
+    transition:transform .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .feat-card:hover .feat-card__img-wrap img { transform:scale(1.07); }
+  .feat-card__img-wrap .no-img { display:flex; align-items:center; justify-content:center; color:var(--text-dim); width:100%; height:100%; }
+  .feat-card__img-wrap .no-img svg { width:54px; height:54px; opacity:.45; }
+  .feat-card__body { padding:14px 16px 18px; background:#fff; }
+  .feat-card__name { font-size:14px; font-weight:700; line-height:1.3; color:var(--heading); }
+  .feat-card__count { font-size:12px; color:var(--text-muted); margin-top:4px; font-weight:500; }
+  .fc-scroll {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:42px; height:42px; border-radius:50%; border:none;
+    background:var(--surface); border:1px solid var(--border-strong);
+    color:var(--heading); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:var(--shadow-lg); z-index:5; transition:color .15s, background .15s, opacity .2s;
+  }
+  .fc-scroll:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .fc-scroll--left { left:-12px; } .fc-scroll--right { right:-12px; }
+  .fc-scroll.hidden { opacity:0; pointer-events:none; }
+
+  /* СЕТКА ТОВАРОВ — 4 столбца на десктопе */
+  .home-products {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  }
+  @media (max-width:1024px) { .home-products { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:768px) { .home-products { grid-template-columns:repeat(2,1fr); gap:12px; } }
+  @media (max-width:768px) { .home-section { padding:0 22px; margin-top:36px; } .stat-strip { padding:0 22px; } }
+  @media (max-width:560px) { .home-section { padding:0 20px; } .stat-strip { padding:0 20px; gap:10px; } .feat-cats__scroll { grid-auto-columns:172px; gap:12px; } }
+
+  /* ── СТАРЫЕ СЕКЦИИ ── */
+  .why-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .delivery-grid { display:grid; grid-template-columns:1fr 1fr; }
+  .float-badge-r { position:absolute; }
+  @media (max-width:960px) {
+    .why-grid { grid-template-columns:repeat(2,1fr); }
+    .delivery-grid { grid-template-columns:1fr; }
+    .delivery-pad { padding:40px 26px !important; }
+    .float-badge-r { right:12px !important; }
+  }
+  @media (max-width:680px) { .why-grid { grid-template-columns:1fr; } }
 </style>
 {% endblock %}
 {% block content %}
 
-<!-- ─── HERO ─── -->
-<section class="hero-pad" style="background:linear-gradient(180deg,#ffffff 0%,#f4f5f7 100%);padding:72px 0 64px;overflow:hidden;position:relative;">
-  <div style="position:absolute;top:-120px;right:-80px;width:480px;height:480px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;"></div>
-  <div class="container hero-grid">
-    <div>
-      <div class="eyebrow"><span class="dot"></span>Профессиональный инструмент</div>
-      <h1 class="hero-title" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,6.5vw,86px);letter-spacing:1.5px;color:var(--heading);line-height:.98;margin-bottom:20px;">
-        ИНСТРУМЕНТЫ ПО<br>ЛУЧШЕЙ <span style="color:var(--accent);">ЦЕНЕ</span><br>С ГАРАНТИЕЙ
-      </h1>
-      <p style="color:var(--text-muted);font-size:17px;max-width:460px;margin-bottom:34px;">
-        Сертифицированные товары от ведущих мировых брендов. Доставка по всему Казахстану.
-      </p>
-      <div class="hero-stats" style="display:flex;gap:34px;margin-bottom:36px;flex-wrap:wrap;">
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:50px;color:var(--heading);line-height:1;">{{ total_products }}+</div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-top:2px;">Товаров в каталоге</div>
-        </div>
-        <div style="width:1px;background:var(--border-strong);align-self:stretch;"></div>
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:50px;color:var(--heading);line-height:1;">{{ nav_categories|length }}</div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-top:2px;">Категорий</div>
-        </div>
-        <div style="width:1px;background:var(--border-strong);align-self:stretch;"></div>
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:50px;color:var(--heading);line-height:1;">24</div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-top:2px;">Месяца гарантии</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <a href="/catalog/" class="btn btn-primary btn-lg">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-          Перейти в каталог
+<!-- ─── СЛАЙДЕР ─── -->
+<section class="promo-slider" id="promoSlider" aria-roledescription="carousel">
+  <div class="ps-track">
+    <div class="ps-slide ps-1 active" role="group" aria-label="Слайд 1 из 3">
+      <div class="ps-decor"></div>
+      <div class="ps-content">
+        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:#fff;"></span>РАСПРОДАЖА</div>
+        <h1 class="ps-title">СКИДКИ ДО <em>−35%</em></h1>
+        <p class="ps-text">Сотни товаров со скидкой — выбирайте инструмент сейчас, пока цены не вернулись.</p>
+        <a href="/catalog/?sale=1" class="ps-btn">Смотреть распродажу
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
-        <a href="#contacts" class="btn btn-outline btn-lg">Связаться с нами</a>
       </div>
     </div>
-    <div style="position:relative;">
-      <div style="border-radius:20px;overflow:hidden;box-shadow:var(--shadow-lg);background:var(--surface-2);aspect-ratio:4/3.4;position:relative;">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-dim);">
-          <svg width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>
-        </div>
-        <img data-fallback src="https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&w=900&q=75" alt="Профессиональный инструмент" style="position:relative;width:100%;height:100%;object-fit:cover;">
+
+    <div class="ps-slide ps-2" role="group" aria-label="Слайд 2 из 3">
+      <div class="ps-decor"></div>
+      <div class="ps-content">
+        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent);"></span>Каталог</div>
+        <h1 class="ps-title">{{ total_products }}+ ТОВАРОВ<br>В <em>ОДНОМ МЕСТЕ</em></h1>
+        <p class="ps-text">От ручного инструмента до сложного оборудования — всё с официальной гарантией.</p>
+        <a href="/catalog/" class="ps-btn" style="background:var(--accent);color:#fff;">Перейти в каталог
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
       </div>
-      <div class="float-badge-l" style="position:absolute;left:-22px;bottom:32px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;">
-        <div style="width:42px;height:42px;border-radius:10px;background:#e9f8ed;display:flex;align-items:center;justify-content:center;color:var(--success);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        </div>
-        <div>
-          <div style="font-weight:800;color:var(--heading);font-size:15px;">Только оригинал</div>
-          <div style="font-size:12px;color:var(--text-muted);">Сертифицированные товары</div>
-        </div>
+    </div>
+
+    <div class="ps-slide ps-3" role="group" aria-label="Слайд 3 из 3">
+      <div class="ps-decor"></div>
+      <div class="ps-content">
+        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:#fff;"></span>Доставка</div>
+        <h1 class="ps-title">ДОСТАВКА <em>ПО КАЗАХСТАНУ</em></h1>
+        <p class="ps-text">Алматы, Астана, Шымкент и любой другой город. Привозим быстро, к удобному времени.</p>
+        <a href="/#delivery" class="ps-btn" style="background:#fff;color:#0d9488;">Узнать подробнее
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
       </div>
     </div>
   </div>
+  <button class="ps-nav ps-prev" onclick="psNav(-1)" aria-label="Назад">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+  </button>
+  <button class="ps-nav ps-next" onclick="psNav(1)" aria-label="Вперёд">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+  </button>
+  <div class="ps-dots" role="tablist">
+    <button class="ps-dot active" data-i="0" aria-label="Слайд 1"></button>
+    <button class="ps-dot" data-i="1" aria-label="Слайд 2"></button>
+    <button class="ps-dot" data-i="2" aria-label="Слайд 3"></button>
+  </div>
 </section>
 
-<!-- ─── BRANDS STRIP ─── -->
-{% if nav_categories %}
-<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-  <div style="max-width:1400px;margin:0 auto;padding:0 32px;display:flex;overflow-x:auto;scrollbar-width:none;">
-    {% for cat in nav_categories %}
-    <a href="/catalog/?cat={{ cat.slug }}" style="padding:16px 22px;white-space:nowrap;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);border-right:1px solid var(--border);transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
-      {{ cat.name }}
-    </a>
-    {% endfor %}
+<!-- ─── СТАТЫ ─── -->
+<div class="stat-strip">
+  <div class="stat-card">
+    <div class="stat-card__icon" style="background:#ea6a1a;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </div>
+    <div><div class="stat-card__num">{{ total_products }}+</div><div class="stat-card__lbl">Товаров</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon" style="background:#2f6fed;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h12v9H1z"/><path d="M13 10h4l4 4v2h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+    </div>
+    <div><div class="stat-card__num">КЗ</div><div class="stat-card__lbl">Доставка по Казахстану</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon" style="background:#2fa84f;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+    </div>
+    <div><div class="stat-card__num">24 мес</div><div class="stat-card__lbl">Гарантия</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon" style="background:#cc1f1f;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6l-2 4 2 4h14v-4Z"/><path d="M2 12h2"/></svg>
+    </div>
+    <div><div class="stat-card__num">−35%</div><div class="stat-card__lbl">Распродажа</div></div>
   </div>
 </div>
-{% endif %}
 
-<!-- ─── CATEGORIES ─── -->
-<section class="section">
-  <div class="container">
-    <div class="eyebrow"><span class="dot"></span>Ассортимент</div>
-    <h2 class="section-title">КАТЕГОРИИ <span>ТОВАРОВ</span></h2>
-    <p class="section-sub">Выберите раздел — от ручного инструмента до профессионального оборудования</p>
-    <div class="cats-grid">
+<!-- ─── ПОПУЛЯРНЫЕ КАТЕГОРИИ ─── -->
+<section class="home-section">
+  <div class="home-head">
+    <h2>ПОПУЛЯРНЫЕ <span class="accent">КАТЕГОРИИ</span></h2>
+    <a href="#" onclick="toggleCatMenu(true);return false;">Все категории
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="feat-cats">
+    <button class="fc-scroll fc-scroll--left hidden" id="fcLeft" onclick="fcScroll(-1)" aria-label="Назад">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+    </button>
+    <div class="feat-cats__scroll" id="fcTrack">
       {% for cat in featured_categories %}
-      <a href="/catalog/?cat={{ cat.slug }}" class="cat-card reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .18s,box-shadow .18s,transform .18s;display:flex;flex-direction:column;" onmouseover="this.style.borderColor='var(--border-strong)';this.style.boxShadow='var(--shadow-lg)';this.style.transform='translateY(-6px)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.transform='translateY(0)'">
-        <div style="aspect-ratio:16/10;position:relative;background:linear-gradient(135deg,var(--accent-soft),var(--surface-2));display:flex;align-items:center;justify-content:center;">
-          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>
+      <a href="/catalog/?cat={{ cat.slug }}" class="feat-card">
+        <div class="feat-card__img-wrap">
           {% if cat.image_url %}
-            <img data-fallback src="{{ cat.image_url }}" alt="{{ cat.name }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+            <img src="{{ cat.image_url }}" alt="{{ cat.name }}" loading="lazy">
           {% else %}
-            <img data-fallback src="{% cycle 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189' 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407' 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc' 'https://images.unsplash.com/photo-1426927308491-6380b6a9936f' 'https://images.unsplash.com/photo-1504148455328-c376907d081c' 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b' %}?auto=format&fit=crop&w=500&q=70" alt="{{ cat.name }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+            <span class="no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg></span>
           {% endif %}
         </div>
-        <div style="padding:18px;flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:10px;">
-          <div style="font-size:15px;font-weight:700;color:var(--heading);line-height:1.3;">{{ cat.name }}</div>
-          <div class="cat-card__go" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);">
-            Смотреть
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </div>
+        <div class="feat-card__body">
+          <div class="feat-card__name">{{ cat.name }}</div>
+          <div class="feat-card__count">{{ cat.prod_count }} товаров</div>
         </div>
       </a>
-      {% empty %}
-      <p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:40px;">Категории пока не добавлены</p>
       {% endfor %}
-      {% if nav_categories|length > 8 %}
-      <a href="/catalog/" style="background:var(--heading);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;padding:28px;transition:background .15s;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--heading)'">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1.5px;">ВСЕ КАТЕГОРИИ</span>
-      </a>
-      {% endif %}
     </div>
+    <button class="fc-scroll fc-scroll--right" id="fcRight" onclick="fcScroll(1)" aria-label="Вперёд">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+    </button>
   </div>
 </section>
 
-<!-- ─── ABOUT ─── -->
-<section id="about" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:72px 0;">
-  <div class="container about-grid">
-    <div style="position:relative;">
-      <div style="border-radius:20px;overflow:hidden;box-shadow:var(--shadow);background:var(--surface-2);aspect-ratio:4/3;position:relative;">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-dim);">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg>
-        </div>
-        <img data-fallback src="https://images.unsplash.com/photo-1426927308491-6380b6a9936f?auto=format&fit=crop&w=800&q=75" alt="О компании" style="position:relative;width:100%;height:100%;object-fit:cover;">
-      </div>
-      <div class="float-badge-r" style="position:absolute;right:-20px;top:28px;background:var(--accent);color:#fff;border-radius:14px;padding:18px 22px;box-shadow:var(--shadow-lg);">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;">10+</div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.9;">лет на рынке</div>
-      </div>
-    </div>
-    <div>
-      <div class="eyebrow"><span class="dot"></span>О компании</div>
-      <h2 class="section-title">НАДЁЖНЫЙ <span>ПОСТАВЩИК</span><br>ИНСТРУМЕНТА</h2>
-      <p style="color:var(--text-muted);font-size:16px;line-height:1.75;margin:18px 0 24px;">
-        ПрофИнструмент — официальный дистрибьютор ведущих мировых брендов. В нашем каталоге более {{ total_products }} позиций качественного оборудования с официальной гарантией. Работаем с частными клиентами и бизнесом, обеспечивая быструю поставку и экспертную поддержку.
-      </p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        {% for f in '1234'|make_list %}{% with forloop.counter as i %}
-        <div style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;">
-          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              {% if i == 1 %}<path d="M20 6 9 17l-5-5"/>
-              {% elif i == 2 %}<path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/>
-              {% elif i == 3 %}<circle cx="12" cy="8" r="5"/><path d="M8.5 13 7 22l5-3 5 3-1.5-9"/>
-              {% else %}<path d="M3 7h18v13H3z"/><path d="M3 7l3-4h12l3 4M12 3v4"/>{% endif %}
-            </svg>
-          </div>
-          <div style="font-size:13px;font-weight:600;color:var(--heading);">
-            {% if i == 1 %}Оригинальная продукция
-            {% elif i == 2 %}Официальная гарантия
-            {% elif i == 3 %}Лучшие бренды
-            {% else %}Работаем с бизнесом{% endif %}
-          </div>
-        </div>
-        {% endwith %}{% endfor %}
-      </div>
-    </div>
+<!-- ─── ХИТЫ ПРОДАЖ ─── -->
+{% if hits %}
+<section class="home-section">
+  <div class="home-head">
+    <h2>ХИТЫ <span class="accent">ПРОДАЖ</span></h2>
+    <a href="/catalog/">В каталог
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="home-products">
+    {% for p in hits %}{% include 'shop/_product_card.html' %}{% endfor %}
   </div>
 </section>
+{% endif %}
 
-<!-- ─── WHY US ─── -->
-<section class="section">
+<!-- ─── РАСПРОДАЖА ─── -->
+{% if sales %}
+<section class="home-section">
+  <div class="home-head">
+    <h2><span class="red">РАСПРОДАЖА</span> 🔥</h2>
+    <a href="/catalog/?sale=1">Вся распродажа
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="home-products">
+    {% for p in sales %}{% include 'shop/_product_card.html' %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ─── О НАС ─── -->
+<section id="about" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 0;margin-top:60px;">
   <div class="container">
-    <div class="eyebrow"><span class="dot"></span>Преимущества</div>
-    <h2 class="section-title">ПОЧЕМУ <span>ВЫБИРАЮТ НАС</span></h2>
-    <p class="section-sub">Мы делаем покупку инструмента простой, выгодной и надёжной</p>
-    <div class="why-grid">
+    <div class="eyebrow"><span class="dot"></span>О компании</div>
+    <h2 class="section-title">НАДЁЖНЫЙ <span>ПОСТАВЩИК</span> ИНСТРУМЕНТА</h2>
+    <p style="color:var(--text-muted);font-size:16px;line-height:1.75;margin:18px 0 24px;max-width:780px;">
+      PrimeTools — официальный дистрибьютор ведущих мировых брендов. В нашем каталоге более {{ total_products }} позиций качественного оборудования с официальной гарантией. Работаем с частными клиентами и бизнесом, обеспечивая быструю поставку и экспертную поддержку.
+    </p>
+    <div class="why-grid" style="margin-top:30px;">
       {% for item in '123456'|make_list %}{% with forloop.counter as i %}
-      <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;transition:border-color .18s,box-shadow .18s,transform .18s;" onmouseover="this.style.borderColor='var(--border-strong)';this.style.boxShadow='var(--shadow-lg)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.transform='translateY(0)'">
-        <div style="width:54px;height:54px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);margin-bottom:16px;">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="reveal" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:border-color .18s,box-shadow .18s,transform .18s;" onmouseover="this.style.borderColor='var(--border-strong)';this.style.boxShadow='var(--shadow-lg)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="width:48px;height:48px;border-radius:11px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);margin-bottom:14px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             {% if i == 1 %}<path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/>
             {% elif i == 2 %}<path d="M1 7h12v9H1z"/><path d="M13 10h4l4 4v2h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
             {% elif i == 3 %}<circle cx="12" cy="9" r="6"/><path d="M9 14.5 7.5 22 12 19l4.5 3L15 14.5"/>
@@ -207,7 +348,7 @@
             {% else %}<path d="M3 21h18M5 21V7l7-4 7 4v14M10 21v-5h4v5"/>{% endif %}
           </svg>
         </div>
-        <h3 style="font-size:17px;font-weight:700;color:var(--heading);margin-bottom:8px;">
+        <h3 style="font-size:16px;font-weight:700;color:var(--heading);margin-bottom:6px;">
           {% if i == 1 %}Официальная гарантия
           {% elif i == 2 %}Доставка по Казахстану
           {% elif i == 3 %}Прямой дистрибьютор
@@ -215,12 +356,12 @@
           {% elif i == 5 %}Помощь в подборе
           {% else %}Работаем с бизнесом{% endif %}
         </h3>
-        <p style="font-size:14px;color:var(--text-muted);line-height:1.65;">
+        <p style="font-size:13.5px;color:var(--text-muted);line-height:1.6;">
           {% if i == 1 %}На все товары — официальная гарантия производителя 12–24 месяца.
-          {% elif i == 2 %}Быстро доставим в любой регион. Работаем с проверенными партнёрами.
+          {% elif i == 2 %}Быстро доставим в любой регион — с проверенными партнёрами.
           {% elif i == 3 %}Официальный партнёр ведущих брендов. Только оригинальная продукция.
-          {% elif i == 4 %}{{ total_products }}+ позиций: от ручного инструмента до сложного оборудования.
-          {% elif i == 5 %}Специалисты подберут оптимальное решение под ваши задачи и бюджет.
+          {% elif i == 4 %}{{ total_products }}+ позиций: от ручного инструмента до оборудования.
+          {% elif i == 5 %}Специалисты подберут оптимальное решение под ваши задачи.
           {% else %}Индивидуальные условия для компаний — крупный и малый бизнес.{% endif %}
         </p>
       </div>
@@ -229,45 +370,37 @@
   </div>
 </section>
 
-<!-- ─── DELIVERY / MAP ─── -->
-<section id="delivery" style="background:var(--surface);border-top:1px solid var(--border);padding:72px 0;">
+<!-- ─── ДОСТАВКА / КАРТА ─── -->
+<section id="delivery" style="background:var(--surface);padding:64px 0;">
   <div class="container">
     <div class="delivery-grid" style="background:linear-gradient(135deg,var(--heading) 0%,#23272f 100%);border-radius:22px;overflow:hidden;">
-      <div class="delivery-pad" style="padding:52px 48px;display:flex;flex-direction:column;justify-content:center;">
+      <div class="delivery-pad" style="padding:48px 44px;display:flex;flex-direction:column;justify-content:center;">
         <div class="eyebrow" style="background:rgba(234,106,26,.18);color:var(--accent-light);"><span class="dot" style="background:var(--accent-light);"></span>Доставка</div>
-        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,4vw,50px);letter-spacing:1.5px;color:#fff;line-height:1.04;margin-bottom:16px;">
+        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,4vw,48px);letter-spacing:1.5px;color:#fff;line-height:1.04;margin-bottom:14px;">
           ДОСТАВКА ПО ВСЕМУ<br><span style="color:var(--accent-light);">КАЗАХСТАНУ</span>
         </h2>
-        <p style="color:#9aa1ac;font-size:15px;line-height:1.7;margin-bottom:26px;">
-          Доставляем в Алматы, Астану, Шымкент, Караганду, Актобе и любой другой город страны. Все товары сертифицированы и имеют официальную гарантию.
+        <p style="color:#9aa1ac;font-size:15px;line-height:1.7;margin-bottom:24px;">
+          Алматы, Астана, Шымкент, Караганда, Актобе и любой другой город страны. Все товары сертифицированы и имеют официальную гарантию.
         </p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;">
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">Алматы</span>
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">Астана</span>
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">Шымкент</span>
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">Караганда</span>
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">Актобе</span>
-          <span style="background:rgba(255,255,255,.08);color:#d0d4da;font-size:13px;font-weight:600;padding:6px 14px;border-radius:30px;">+ регионы</span>
-        </div>
         <a href="/catalog/" class="btn btn-primary" style="align-self:flex-start;">Перейти в каталог</a>
       </div>
-      <div style="position:relative;min-height:360px;background:#1f232b;display:flex;align-items:center;justify-content:center;padding:32px;">
+      <div style="position:relative;min-height:340px;background:#1f232b;display:flex;align-items:center;justify-content:center;padding:30px;">
         {% include 'shop/_kz_map.html' %}
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── CONTACTS CTA ─── -->
+<!-- ─── КОНТАКТЫ CTA ─── -->
 <section id="contacts" class="section">
   <div class="container">
-    <div style="background:var(--accent);border-radius:22px;padding:56px 48px;text-align:center;position:relative;overflow:hidden;box-shadow:0 20px 50px var(--accent-glow);">
+    <div style="background:var(--accent);border-radius:22px;padding:52px 44px;text-align:center;position:relative;overflow:hidden;box-shadow:0 20px 50px var(--accent-glow);">
       <div style="position:absolute;top:-80px;left:-40px;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);"></div>
       <div style="position:absolute;bottom:-100px;right:-40px;width:340px;height:340px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 70%);"></div>
       <div style="position:relative;">
-        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,5vw,56px);letter-spacing:1.5px;color:#fff;line-height:1;margin-bottom:12px;">СВЯЖИТЕСЬ С НАМИ</h2>
-        <p style="color:rgba(255,255,255,.9);font-size:16px;max-width:520px;margin:0 auto 30px;">
-          Проконсультируем по выбору инструмента и поможем оформить заказ. Звоните или пишите — ответим быстро.
+        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,5vw,52px);letter-spacing:1.5px;color:#fff;line-height:1;margin-bottom:12px;">СВЯЖИТЕСЬ С НАМИ</h2>
+        <p style="color:rgba(255,255,255,.92);font-size:16px;max-width:520px;margin:0 auto 26px;">
+          Поможем подобрать инструмент и оформить заказ. Звоните или пишите — ответим быстро.
         </p>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
           <a href="tel:{{ CALL_NUMBER }}" class="btn btn-lg" style="background:#fff;color:var(--accent);border-color:#fff;">
@@ -275,7 +408,7 @@
             Позвонить
           </a>
           <a href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener" class="btn btn-lg" style="background:#25D366;color:#fff;border-color:#25D366;">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.91-2.19-.24-.57-.48-.5-.66-.5l-.57-.01c-.2 0-.52.07-.79.37s-1.04 1.02-1.04 2.48 1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35ZM12.05 21.4h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.36 9.36 0 0 1-1.44-5 9.46 9.46 0 0 1 16.15-6.68 9.39 9.39 0 0 1 2.77 6.69c0 5.2-4.24 9.4-9.46 9.4ZM20.5 3.49A11.06 11.06 0 0 0 12.05.01C5.95.01 1 4.96.99 11.05c0 1.95.51 3.85 1.48 5.53L.9 22.99l6.55-1.72a11.07 11.07 0 0 0 5.29 1.35h.01c6.1 0 11.05-4.95 11.06-11.04 0-2.95-1.15-5.73-3.24-7.82l-.07-.07Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.91-2.19-.24-.57-.48-.5-.66-.5l-.57-.01c-.2 0-.52.07-.79.37s-1.04 1.02-1.04 2.48 1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg>
             WhatsApp
           </a>
           <a href="/catalog/" class="btn btn-lg" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.6);">Перейти в каталог</a>
@@ -285,4 +418,45 @@
   </div>
 </section>
 
+{% block extra_js %}
+<script>
+/* ── Слайдер ── */
+(function() {
+  var slides = document.querySelectorAll('.ps-slide');
+  var dots = document.querySelectorAll('.ps-dot');
+  if (!slides.length) return;
+  var idx = 0, timer;
+  function go(i) {
+    idx = (i + slides.length) % slides.length;
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === idx); });
+    dots.forEach(function(d, k){ d.classList.toggle('active', k === idx); });
+  }
+  window.psNav = function(d) { go(idx + d); restart(); };
+  dots.forEach(function(d) {
+    d.addEventListener('click', function() { go(+this.dataset.i); restart(); });
+  });
+  function restart() { clearInterval(timer); timer = setInterval(function(){ go(idx+1); }, 6000); }
+  restart();
+})();
+
+/* ── Карусель категорий: показывать/прятать стрелки ── */
+(function() {
+  var track = document.getElementById('fcTrack');
+  var left = document.getElementById('fcLeft');
+  var right = document.getElementById('fcRight');
+  if (!track) return;
+  window.fcScroll = function(dir) {
+    track.scrollBy({ left: dir * Math.round(track.clientWidth * 0.8), behavior: 'smooth' });
+  };
+  function update() {
+    var max = track.scrollWidth - track.clientWidth - 2;
+    left.classList.toggle('hidden', track.scrollLeft <= 2);
+    right.classList.toggle('hidden', track.scrollLeft >= max);
+  }
+  track.addEventListener('scroll', update);
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
+{% endblock %}
 {% endblock %}

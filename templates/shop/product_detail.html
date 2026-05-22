@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load shop_extras %}
-{% block title %}{{ product.name }} — ПрофИнструмент{% endblock %}
+{% block title %}{{ product.name }} — PrimeTools{% endblock %}
 {% block content %}
 <div class="container section">
   <div style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">
@@ -39,9 +39,23 @@
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Артикул: <span style="font-family:monospace;color:var(--heading);">{{ product.article }}</span></div>
       {% endif %}
 
+      {% if product.is_on_sale %}
+      <div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,9vw,50px);color:#cc1f1f;line-height:1;">
+          {{ product.price|money }} <span style="font-size:24px;color:var(--text-muted);">тг</span>
+        </div>
+        <div style="font-size:20px;color:var(--text-dim);text-decoration:line-through;line-height:1;padding-bottom:4px;">
+          {{ product.old_price|money }} тг
+        </div>
+        <span style="background:linear-gradient(135deg,#ff3b3b,#cc1f1f);color:#fff;padding:5px 12px;border-radius:6px;font-size:14px;font-weight:800;line-height:1;align-self:center;">
+          −{{ product.discount_percent }}%
+        </span>
+      </div>
+      {% else %}
       <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,9vw,50px);color:var(--heading);margin-bottom:20px;line-height:1;">
         {{ product.price|money }} <span style="font-size:24px;color:var(--text-muted);">тг</span>
       </div>
+      {% endif %}
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
         {% if product.in_stock %}

@@ -10,13 +10,29 @@ import json
 
 
 def index(request):
-    featured_categories = (
-        Category.objects.filter(parent__isnull=True).order_by('order', 'name')[:8]
+    from django.db.models import Count
+    # Топ-категории с количеством товаров — для «крутого» блока с карточками.
+    featured_categories = list(
+        Category.objects.filter(parent__isnull=True)
+        .annotate(prod_count=Count('products'))
+        .order_by('-prod_count')[:12]
     )
     total_products = Product.objects.count()
+    # Хиты продаж — случайные товары с фото и в наличии.
+    hits = list(
+        Product.objects.exclude(image_url='').filter(in_stock=True)
+        .order_by('?')[:8]
+    )
+    # Распродажа — товары с проставленной old_price.
+    sales = list(
+        Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
+        .order_by('?')[:8]
+    )
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,
+        'hits': hits,
+        'sales': sales,
     })
 
 
@@ -28,6 +44,7 @@ def catalog(request):
     price_min = request.GET.get('price_min', '').strip()
     price_max = request.GET.get('price_max', '').strip()
     in_stock_only = request.GET.get('in_stock') == '1'
+    sale_only = request.GET.get('sale') == '1'
 
     active_category = active_parent = None
     products = Product.objects.select_related('category')
@@ -54,6 +71,8 @@ def catalog(request):
             price_max = ''
     if in_stock_only:
         products = products.filter(in_stock=True)
+    if sale_only:
+        products = products.exclude(old_price__isnull=True)
 
     if sort == 'price_asc':
         products = products.order_by('price')
@@ -98,6 +117,7 @@ def catalog(request):
         'price_min': price_min,
         'price_max': price_max,
         'in_stock_only': in_stock_only,
+        'sale_only': sale_only,
     })
 
 
@@ -163,8 +183,8 @@ def cart_add(request):
         }
 
     request.session['cart'] = cart
-    total_count = sum(item['quantity'] for item in cart.values())
-    return JsonResponse({'success': True, 'cart_count': total_count})
+    # бейдж в шапке показывает число разных позиций, а не общее количество штук
+    return JsonResponse({'success': True, 'cart_count': len(cart)})
 
 
 @require_POST

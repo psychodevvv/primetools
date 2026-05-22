@@ -1,0 +1,29 @@
+{% load shop_extras %}
+<div class="product-card">
+  <a href="/product/{{ p.pk }}/" class="product-card__img">
+    {% if not p.in_stock %}<span class="stock-badge">Уточните наличие</span>{% endif %}
+    {% if p.is_on_sale %}<span class="sale-badge">−{{ p.discount_percent }}%</span>{% endif %}
+    {% if p.image_url %}
+      <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+    {% else %}
+      <span class="no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg></span>
+    {% endif %}
+  </a>
+  <div class="product-card__body">
+    {% if p.brand %}<div class="product-card__brand">{{ p.brand }}</div>{% endif %}
+    <a href="/product/{{ p.pk }}/" class="product-card__name">{{ p.name }}</a>
+    <div class="product-card__price">
+      {% if p.is_on_sale %}
+        <span class="old">{{ p.old_price|money }}</span>
+        <span class="now">{{ p.price|money }}</span>
+      {% else %}
+        {{ p.price|money }}
+      {% endif %}
+      <span class="cur">тг</span>
+    </div>
+  </div>
+  <div class="product-card__footer">
+    <a href="/product/{{ p.pk }}/" class="btn btn-outline btn-sm">Подробнее</a>
+    <button class="btn btn-primary btn-sm" onclick="addToCart({{ p.pk }})">В корзину</button>
+  </div>
+</div>

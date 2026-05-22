@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ПрофИнструмент — Инструменты и оборудование{% endblock %}</title>
+  <title>{% block title %}PrimeTools — Инструменты и оборудование{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -270,12 +270,15 @@
     .product-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
     .product-card__img {
       width: 100%; aspect-ratio: 4/3; overflow: hidden;
-      background: var(--surface-2);
+      background: #fff;
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
-    .product-card__img img { width: 100%; height: 100%; object-fit: cover; }
-    .product-card__img .no-img { color: var(--text-dim); }
+    .product-card__img img {
+      max-width: 90%; max-height: 90%; width: auto; height: auto;
+      object-fit: contain;
+    }
+    .product-card__img .no-img { color: var(--text-dim); display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
     .product-card__img .no-img svg { width: 54px; height: 54px; }
     .product-card__body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
     .product-card__brand { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 1.4px; margin-bottom: 6px; }
@@ -292,7 +295,20 @@
       background: var(--accent-soft); color: var(--accent-dark);
       font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px;
       padding: 4px 9px; border-radius: 20px; border: 1px solid #f6cda6;
+      z-index: 1;
     }
+    .sale-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: linear-gradient(135deg, #ff3b3b, #cc1f1f);
+      color: #fff; font-size: 12px; font-weight: 900; letter-spacing: .3px;
+      padding: 5px 10px; border-radius: 6px; box-shadow: 0 4px 10px rgba(204,31,31,.3);
+      transform: rotate(2deg); z-index: 1;
+    }
+    .product-card__price .old {
+      font-size: 14px; font-weight: 500; color: var(--text-dim);
+      text-decoration: line-through; margin-right: 6px;
+    }
+    .product-card__price .now { color: #cc1f1f; }
 
     /* ─── FORMS ─── */
     .form-group { margin-bottom: 20px; }
@@ -455,23 +471,101 @@
     .drawer.open .drawer__nav > *:nth-child(7) { animation-delay: .28s; }
     .drawer.open .drawer__nav > *:nth-child(8) { animation-delay: .32s; }
 
+    /* ═══ МЕГАМЕНЮ «КАТАЛОГ» ═══ */
+    .cat-menu-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent); color: #fff; border: none; cursor: pointer;
+      padding: 11px 20px; border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-right: 18px;
+      transition: background .15s, transform .12s, box-shadow .18s;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .cat-menu-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 8px 22px var(--accent-glow); }
+    .cat-menu-btn:active { transform: scale(.97); }
+    .cat-menu-btn svg { width: 18px; height: 18px; }
+    .cat-menu-btn .arr { transition: transform .25s; }
+    .cat-menu-btn.open .arr { transform: rotate(180deg); }
+
+    .cat-megamenu {
+      position: fixed; top: 70px; left: 0; right: 0; z-index: 1200;
+      background: var(--surface); border-top: 1px solid var(--border);
+      box-shadow: 0 24px 40px rgba(15,18,24,.16);
+      opacity: 0; transform: translateY(-8px); pointer-events: none;
+      transition: opacity .2s ease, transform .22s ease;
+      max-height: calc(100vh - 70px); overflow-y: auto;
+    }
+    .cat-megamenu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .cat-megamenu-inner {
+      max-width: 1400px; margin: 0 auto; padding: 26px 32px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    .cmm-item {
+      display: flex; align-items: center; gap: 14px; padding: 12px 14px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text);
+      transition: border-color .15s, transform .15s, box-shadow .15s;
+    }
+    .cmm-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-strong); }
+    .cmm-item__icon {
+      width: 46px; height: 46px; flex-shrink: 0; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; color: #fff;
+      background: var(--accent); overflow: hidden;
+    }
+    .cmm-item__icon img { width: 100%; height: 100%; object-fit: cover; }
+    .cmm-item__name { font-size: 14px; font-weight: 700; color: var(--heading); line-height: 1.25; }
+    .cmm-item__count { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Цветовые акценты для категорий по позиции (1..12) */
+    .color-1 .cmm-item__icon, .color-1 .cat-color { background: #ea6a1a; }
+    .color-2 .cmm-item__icon, .color-2 .cat-color { background: #2f6fed; }
+    .color-3 .cmm-item__icon, .color-3 .cat-color { background: #2fa84f; }
+    .color-4 .cmm-item__icon, .color-4 .cat-color { background: #cc1f1f; }
+    .color-5 .cmm-item__icon, .color-5 .cat-color { background: #8b5cf6; }
+    .color-6 .cmm-item__icon, .color-6 .cat-color { background: #0891b2; }
+    .color-7 .cmm-item__icon, .color-7 .cat-color { background: #db2777; }
+    .color-8 .cmm-item__icon, .color-8 .cat-color { background: #ca8a04; }
+    .color-9 .cmm-item__icon, .color-9 .cat-color { background: #1d7a38; }
+    .color-10 .cmm-item__icon, .color-10 .cat-color { background: #dc6f00; }
+    .color-11 .cmm-item__icon, .color-11 .cat-color { background: #0d9488; }
+    .color-12 .cmm-item__icon, .color-12 .cat-color { background: #6366f1; }
+
+    @media (max-width: 1024px) { .cat-megamenu-inner { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .cat-megamenu-inner { grid-template-columns: repeat(2, 1fr); padding: 18px; } }
+
     /* ═══ АДАПТИВ ═══ */
     main { overflow-x: clip; }
     @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 900px) {
       .header-nav { display: none; }
-      .header-inner .auth-link, .header-inner .cart-link { display: none; }
+      .header-inner .auth-link { display: none; }
       .burger { display: flex; }
       .header-inner { height: 62px; }
       .logo { font-size: 25px; letter-spacing: 1.5px; margin-right: auto; }
       .cat-bar { padding: 0 44px; }
       .section { padding: 48px 0; }
       .search-results { min-width: 0; }
+      .cat-menu-btn { display: none; }
+      .cat-megamenu { top: 62px; max-height: calc(100vh - 62px); }
+      /* Компактная корзина-иконка между поиском и бургером */
+      .cart-link {
+        padding: 0; width: 42px; height: 42px;
+        border-radius: 50%; justify-content: center; gap: 0;
+        position: relative;
+      }
+      .cart-link__text { display: none; }
+      .cart-link svg { width: 19px; height: 19px; }
+      .cart-link .cart-badge {
+        position: absolute; top: -3px; right: -3px;
+        min-width: 18px; height: 18px; font-size: 10px;
+        border: 2px solid var(--surface);
+      }
     }
     @media (max-width: 768px) {
       .footer-grid { grid-template-columns: 1fr; gap: 24px; }
       .container, .header-inner, .search-wrap-inner, .footer-bottom, .footer-grid {
-        padding-left: 18px; padding-right: 18px;
+        padding-left: 22px; padding-right: 22px;
       }
     }
     @media (max-width: 560px) {
@@ -479,7 +573,10 @@
       .section { padding: 36px 0; }
       .section-sub { font-size: 14px; margin-bottom: 24px; }
       .section-title { font-size: clamp(30px, 9vw, 44px); }
-      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 11px; }
+      .container, .header-inner, .search-wrap-inner, .footer-bottom, .footer-grid {
+        padding-left: 20px; padding-right: 20px;
+      }
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
       .product-card__body { padding: 12px; }
       .product-card__name { -webkit-line-clamp: 2; margin-bottom: 8px; }
       .product-card__price { font-size: 18px; }
@@ -501,9 +598,14 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="/" class="logo">ПРОФ<span>ИНСТРУМЕНТ</span></a>
+    <a href="/" class="logo">Prime<span>Tools</span></a>
+    <button type="button" class="cat-menu-btn" id="catMenuBtn" onclick="toggleCatMenu()" aria-expanded="false" aria-controls="catMegamenu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      Каталог
+      <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
     <nav class="header-nav">
-      <a href="/catalog/">Каталог</a>
+      <a href="/catalog/">Все товары</a>
       <a href="/#about">О нас</a>
       <a href="/#delivery">Доставка</a>
       <a href="/#contacts">Контакты</a>
@@ -519,9 +621,9 @@
         <a href="/account/login/" class="auth-link">Войти</a>
         <a href="/account/register/" class="auth-link reg">Регистрация</a>
       {% endif %}
-      <a href="/cart/" class="cart-link">
+      <a href="/cart/" class="cart-link" aria-label="Корзина">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 9.4a2 2 0 0 1-2 1.6H8.2a2 2 0 0 1-2-1.6L5 7Z"/><path d="M8.5 7V5.5a3.5 3.5 0 0 1 7 0V7"/></svg>
-        Корзина
+        <span class="cart-link__text">Корзина</span>
         {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
       </a>
       <button class="burger" id="burger" onclick="toggleDrawer()" aria-label="Меню">
@@ -542,11 +644,30 @@
   </div>
 </header>
 
+<!-- ─── МЕГАМЕНЮ «КАТАЛОГ» ─── -->
+<div class="cat-megamenu" id="catMegamenu" role="region" aria-label="Каталог категорий">
+  <div class="cat-megamenu-inner">
+    {% for cat in nav_categories %}
+    <a href="/catalog/?cat={{ cat.slug }}"
+       class="cmm-item color-{% cycle '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11' '12' %}">
+      <div class="cmm-item__icon">
+        {% if cat.image_url %}<img src="{{ cat.image_url }}" alt="" loading="lazy">
+        {% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>{% endif %}
+      </div>
+      <div style="min-width:0;flex:1;">
+        <div class="cmm-item__name">{{ cat.name }}</div>
+        <div class="cmm-item__count">{{ cat.prod_count }} товаров</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
 <!-- ─── МОБИЛЬНОЕ МЕНЮ ─── -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside class="drawer" id="mobileDrawer" aria-hidden="true">
   <div class="drawer__head">
-    <span class="drawer__logo">ПРОФ<span>ИНСТРУМЕНТ</span></span>
+    <span class="drawer__logo">Prime<span>Tools</span></span>
     <button class="drawer__close" onclick="toggleDrawer(false)" aria-label="Закрыть">&times;</button>
   </div>
   <nav class="drawer__nav">
@@ -631,7 +752,7 @@
 <footer class="site-footer">
   <div class="footer-grid">
     <div>
-      <a href="/" class="footer-logo">ПРОФ<span>ИНСТРУМЕНТ</span></a>
+      <a href="/" class="footer-logo">Prime<span>Tools</span></a>
       <p class="footer-tagline">Профессиональный инструмент и оборудование. Доставка по всему Казахстану. Официальная гарантия на все товары.</p>
       <a href="tel:{{ CALL_NUMBER }}" class="footer-phone">{{ CALL_NUMBER }}</a>
     </div>
@@ -660,7 +781,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2025 ПрофИнструмент. Все права защищены.</span>
+    <span>© 2025 PrimeTools. Все права защищены.</span>
     <span>{{ CALL_NUMBER }}</span>
   </div>
 </footer>
@@ -792,6 +913,22 @@ document.querySelectorAll('img[data-fallback]').forEach(function(img){
   img.addEventListener('error', function(){ this.style.display = 'none'; });
 });
 
+/* Глобально: если картинка карточки товара не загрузилась — показываем иконку */
+document.addEventListener('error', function(e) {
+  var img = e.target;
+  if (!img || img.tagName !== 'IMG') return;
+  var wrap = img.closest('.product-card__img, .feat-card__img-wrap, .cmm-item__icon, .ci-photo, .om-thumb');
+  if (!wrap) return;
+  img.style.display = 'none';
+  if (!wrap.querySelector('.no-img')) {
+    var sp = document.createElement('span');
+    sp.className = 'no-img';
+    sp.style.cssText = 'display:flex;align-items:center;justify-content:center;color:var(--text-dim);';
+    sp.innerHTML = '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.6-.6-2.2 2.6-2.6Z"/></svg>';
+    wrap.appendChild(sp);
+  }
+}, true);
+
 /* cart */
 async function addToCart(productId) {
   const res = await fetch('/cart/add/', {
@@ -820,6 +957,29 @@ function getCookie(name) {
   const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
   return v ? v[2] : null;
 }
+
+/* ─── мегаменю «Каталог» ─── */
+function toggleCatMenu(force) {
+  var m = document.getElementById('catMegamenu');
+  var b = document.getElementById('catMenuBtn');
+  if (!m) return;
+  var open = (typeof force === 'boolean') ? force : !m.classList.contains('open');
+  m.classList.toggle('open', open);
+  if (b) {
+    b.classList.toggle('open', open);
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+}
+document.addEventListener('click', function(e) {
+  var m = document.getElementById('catMegamenu');
+  var b = document.getElementById('catMenuBtn');
+  if (!m || !m.classList.contains('open')) return;
+  if (m.contains(e.target) || (b && b.contains(e.target))) return;
+  toggleCatMenu(false);
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') toggleCatMenu(false);
+});
 
 /* ─── мобильное меню (drawer) ─── */
 function toggleDrawer(force) {

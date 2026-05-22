@@ -35,6 +35,9 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     characteristics = models.TextField(blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    old_price = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text='Цена до скидки. Если задана и больше текущей — товар на распродаже.')
     image_url = models.URLField(blank=True)
     gallery = models.TextField(blank=True)  # доп. фото, по одному URL в строке
     source_url = models.URLField(blank=True)
@@ -48,6 +51,17 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_on_sale(self):
+        return self.old_price is not None and self.old_price > self.price
+
+    @property
+    def discount_percent(self):
+        if not self.is_on_sale:
+            return 0
+        return int(round((float(self.old_price) - float(self.price))
+                         / float(self.old_price) * 100))
 
     def image_list(self):
         """Список всех фото товара (галерея + основное, без дублей)."""
