@@ -41,6 +41,10 @@ class Product(models.Model):
     image_url = models.URLField(blank=True)
     gallery = models.TextField(blank=True)  # доп. фото, по одному URL в строке
     source_url = models.URLField(blank=True)
+    video_url = models.URLField(blank=True,
+        help_text='Ссылка на видео-обзор (YouTube embed или прямая ссылка на .mp4).')
+    video_file = models.FileField(upload_to='product_videos/', blank=True, null=True,
+        help_text='Видео-файл (mp4). Используется, если ссылка пустая.')
     in_stock = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -55,6 +59,27 @@ class Product(models.Model):
     @property
     def is_on_sale(self):
         return self.old_price is not None and self.old_price > self.price
+
+    @property
+    def video_embed(self):
+        """URL для встраиваемого <iframe> либо <video>. Пусто, если видео нет."""
+        if self.video_file:
+            return self.video_file.url
+        return self.video_url or ''
+
+    @property
+    def video_kind(self):
+        """'youtube', 'video' (для .mp4 и пр.), либо '' если видео нет."""
+        if self.video_file:
+            return 'video'
+        url = (self.video_url or '').lower()
+        if not url:
+            return ''
+        if 'youtube.com' in url or 'youtu.be' in url:
+            return 'youtube'
+        if 'rutube.ru' in url or 'vk.com/video' in url or 'vimeo' in url:
+            return 'youtube'  # все используют iframe-плеер
+        return 'video'
 
     @property
     def discount_percent(self):
@@ -99,6 +124,67 @@ class Order(models.Model):
     def calculate_total(self):
         self.total = sum(item.subtotal() for item in self.items.all())
         self.save()
+
+
+class VideoReview(models.Model):
+    """Видео-обзор для главной страницы. Управляется из админки."""
+    title = models.CharField(max_length=200, blank=True,
+        help_text='Подпись под видео (необязательно).')
+    video_url = models.URLField(blank=True,
+        help_text='YouTube / Rutube / VK ссылка на видео.')
+    video_file = models.FileField(upload_to='homepage_videos/', blank=True, null=True,
+        help_text='Видео-файл (mp4). Используется, если ссылка пустая.')
+    thumbnail_url = models.URLField(blank=True,
+        help_text='Свой превью-кадр. Если пусто — берётся автоматически для YouTube.')
+    order = models.PositiveIntegerField(default=0,
+        help_text='Чем меньше — тем выше в ленте.')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Видео-обзор (главная)'
+        verbose_name_plural = 'Видео-обзоры (главная)'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.title or self.video_url[:60] or f'Видео #{self.pk}'
+
+    @property
+    def src(self):
+        if self.video_file:
+            return self.video_file.url
+        return self.video_url or ''
+
+    @property
+    def kind(self):
+        if self.video_file:
+            return 'video'
+        u = (self.video_url or '').lower()
+        if 'youtube' in u or 'youtu.be' in u:
+            return 'youtube'
+        if 'rutube' in u or 'vk.com/video' in u or 'vimeo' in u:
+            return 'iframe'
+        return 'video'
+
+    @property
+    def youtube_id(self):
+        u = self.video_url or ''
+        if 'youtube.com/embed/' in u:
+            return u.split('/embed/')[1].split('?')[0].split('/')[0]
+        if 'youtu.be/' in u:
+            return u.split('youtu.be/')[1].split('?')[0].split('/')[0]
+        if 'youtube.com/watch?v=' in u:
+            return u.split('v=')[1].split('&')[0]
+        return ''
+
+    @property
+    def thumb(self):
+        if self.thumbnail_url:
+            return self.thumbnail_url
+        yid = self.youtube_id
+        if yid:
+            return f'https://i.ytimg.com/vi/{yid}/hqdefault.jpg'
+        return ''
 
 
 class OrderItem(models.Model):

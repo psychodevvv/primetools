@@ -1,0 +1,61 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}Видео-обзоры — Админ{% endblock %}
+{% block nav_videos %}active{% endblock %}
+{% block page_title %}Видео-обзоры на главной{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+  <div style="color:#888;font-size:14px;">
+    Эти видео выводятся на главной странице сайта в блоке «Видео-обзоры».
+    Чем меньше «порядок» — тем выше в ленте.
+  </div>
+  <a href="/admin-panel/videos/add/" class="btn btn-primary">＋ Добавить видео</a>
+</div>
+
+{% if videos %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+  {% for v in videos %}
+  <div class="card" style="padding:0;overflow:hidden;{% if not v.is_active %}opacity:.55;{% endif %}">
+    <div style="position:relative;aspect-ratio:16/9;background:#000;">
+      {% if v.thumb %}
+        <img src="{{ v.thumb }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+      {% elif v.video_file %}
+        <video preload="metadata" src="{{ v.video_file.url }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+      {% else %}
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#666;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="6,4 22,12 6,20"/></svg>
+        </div>
+      {% endif %}
+      <span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;">
+        {{ v.kind }}
+      </span>
+      <span style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;">
+        № {{ v.order }}
+      </span>
+    </div>
+    <div style="padding:14px 16px;">
+      <div style="color:#fff;font-weight:600;margin-bottom:6px;font-size:14px;">
+        {{ v.title|default:"(без подписи)" }}
+      </div>
+      {% if v.video_url %}
+      <div style="font-size:11px;color:#888;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ v.video_url }}</div>
+      {% endif %}
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <a href="/admin-panel/videos/{{ v.pk }}/edit/" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;">Изменить</a>
+        <form method="post" action="/admin-panel/videos/{{ v.pk }}/delete/" onsubmit="return confirm('Удалить это видео?')" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm" style="background:#5a2122;color:#fff;border-color:#5a2122;">✕</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:80px 20px;color:#888;">
+  <div style="font-size:60px;margin-bottom:12px;">🎬</div>
+  <h3 style="color:#fff;margin-bottom:8px;">Нет видео-обзоров</h3>
+  <p style="margin-bottom:20px;">Добавьте первый ролик — он появится на главной странице сайта.</p>
+  <a href="/admin-panel/videos/add/" class="btn btn-primary">＋ Добавить видео</a>
+</div>
+{% endif %}
+{% endblock %}

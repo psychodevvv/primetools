@@ -1,0 +1,69 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block title %}{% if video %}Изменить видео{% else %}Добавить видео{% endif %} — Админ{% endblock %}
+{% block nav_videos %}active{% endblock %}
+{% block page_title %}{% if video %}Изменить видео{% else %}Добавить видео-обзор{% endif %}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px;padding:24px 28px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label class="form-label">Подпись (необязательно)</label>
+      <input type="text" name="title" class="form-control"
+             value="{{ video.title|default:'' }}" placeholder="Например: «Обзор дрели Bosch GSR 18V»">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Ссылка на видео</label>
+      <input type="url" name="video_url" class="form-control"
+             value="{{ video.video_url|default:'' }}"
+             placeholder="https://www.youtube.com/watch?v=... или https://youtu.be/...">
+      <div style="font-size:12px;color:#777;margin-top:5px;">
+        Поддерживаются: YouTube (watch / embed / youtu.be), Rutube, VK Video, Vimeo, прямые ссылки на .mp4.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Или загрузите видео-файл</label>
+      <input type="file" name="video_file" accept="video/mp4,video/webm,video/quicktime" class="form-control" style="cursor:pointer;">
+      {% if video and video.video_file %}
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;color:#aab;font-size:13px;">
+        <span>Сейчас: <a href="{{ video.video_file.url }}" target="_blank" style="color:var(--accent);">{{ video.video_file.name }}</a></span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" name="clear_video_file" value="1" style="accent-color:var(--accent);">
+          Удалить файл
+        </label>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Превью-картинка (необязательно)</label>
+      <input type="url" name="thumbnail_url" class="form-control"
+             value="{{ video.thumbnail_url|default:'' }}"
+             placeholder="https://...jpg">
+      <div style="font-size:12px;color:#777;margin-top:5px;">
+        Для YouTube можно не указывать — превью возьмётся автоматически.
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:end;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Порядок</label>
+        <input type="number" name="order" class="form-control" value="{{ video.order|default:0 }}" min="0">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label style="display:flex;align-items:center;gap:9px;color:#ddd;cursor:pointer;">
+          <input type="checkbox" name="is_active" value="1" {% if video is None or video.is_active %}checked{% endif %} style="width:18px;height:18px;accent-color:var(--accent);">
+          Показывать на сайте
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+      <a href="/admin-panel/videos/" class="btn btn-outline">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

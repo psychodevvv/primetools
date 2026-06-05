@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
-from shop.models import Category, Product, Order
+from shop.models import Category, Product, Order, VideoReview
 from accounts.models import Customer
 from .models import AdminUser
 
@@ -1025,3 +1025,55 @@ def customer_delete(request, pk):
     customer.delete()
     messages.success(request, 'Покупатель удалён из базы.')
     return redirect('admin_customers')
+
+
+# ─── Видео-обзоры на главной ─────────────────────────────────────────────
+@admin_required
+def videoreviews_list(request):
+    videos = VideoReview.objects.all()
+    return render(request, 'adminpanel/videos.html', {'videos': videos})
+
+
+@admin_required
+def videoreview_edit(request, pk=None):
+    video = get_object_or_404(VideoReview, pk=pk) if pk else None
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        video_url = request.POST.get('video_url', '').strip()
+        thumbnail_url = request.POST.get('thumbnail_url', '').strip()
+        try:
+            order = int(request.POST.get('order', 0))
+        except ValueError:
+            order = 0
+        is_active = request.POST.get('is_active') == '1'
+
+        if video is None:
+            video = VideoReview()
+        video.title = title[:200]
+        video.video_url = video_url
+        video.thumbnail_url = thumbnail_url
+        video.order = order
+        video.is_active = is_active
+        if request.FILES.get('video_file'):
+            video.video_file = request.FILES['video_file']
+        elif request.POST.get('clear_video_file') == '1' and video.video_file:
+            video.video_file.delete(save=False)
+            video.video_file = None
+        if not video.video_url and not video.video_file:
+            messages.error(request, 'Укажите ссылку или загрузите видео-файл.')
+            return render(request, 'adminpanel/video_edit.html', {'video': video})
+        video.save()
+        messages.success(request, 'Видео-обзор сохранён.')
+        return redirect('admin_videos')
+    return render(request, 'adminpanel/video_edit.html', {'video': video})
+
+
+@admin_required
+@require_POST
+def videoreview_delete(request, pk):
+    video = get_object_or_404(VideoReview, pk=pk)
+    if video.video_file:
+        video.video_file.delete(save=False)
+    video.delete()
+    messages.success(request, 'Видео-обзор удалён.')
+    return redirect('admin_videos')

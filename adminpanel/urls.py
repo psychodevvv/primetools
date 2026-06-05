@@ -23,4 +23,8 @@ urlpatterns = [
     path('ai/categorize/', views.ai_categorize, name='admin_ai_categorize'),
     path('ai/images/', views.ai_fetch_images, name='admin_ai_images'),
     path('ai/site-search/', views.ai_site_search, name='admin_ai_site_search'),
+    path('videos/', views.videoreviews_list, name='admin_videos'),
+    path('videos/add/', views.videoreview_edit, name='admin_video_add'),
+    path('videos/<int:pk>/edit/', views.videoreview_edit, name='admin_video_edit'),
+    path('videos/<int:pk>/delete/', views.videoreview_delete, name='admin_video_delete'),
 ]

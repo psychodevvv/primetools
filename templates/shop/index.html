@@ -108,6 +108,10 @@
   }
   .home-head h2 span.accent { color:var(--accent); }
   .home-head h2 span.red { color:#cc1f1f; }
+  .home-head h2 span.purple { color:#7c3aed; }
+  .home-head h2 span.green { color:#16a34a; }
+  .home-head h2 span.blue { color:#2563eb; }
+  .home-head h2 span.cyan { color:#0ea5e9; }
   .home-head a {
     font-size:13px; font-weight:700; color:var(--accent);
     text-transform:uppercase; letter-spacing:.6px;
@@ -124,13 +128,28 @@
   }
   .feat-cats__scroll::-webkit-scrollbar { display:none; }
   .feat-card {
+    position:relative;
     scroll-snap-align:start; display:flex; flex-direction:column;
     background:#fff; border:none; border-radius:var(--radius);
     overflow:hidden; text-decoration:none; color:inherit;
     box-shadow:0 1px 4px rgba(15,18,24,.05);
     transition:transform .2s, box-shadow .2s;
   }
+  /* цветная полоска сверху для каждой карточки — добавляет яркости */
+  .feat-card::before {
+    content:''; position:absolute; left:0; right:0; top:0; height:4px;
+    background:var(--accent); border-radius:var(--radius) var(--radius) 0 0;
+    transition:height .2s;
+  }
+  .feat-card:nth-child(7n+1)::before { background:#ea6a1a; }
+  .feat-card:nth-child(7n+2)::before { background:#2f6fed; }
+  .feat-card:nth-child(7n+3)::before { background:#16a34a; }
+  .feat-card:nth-child(7n+4)::before { background:#cc1f1f; }
+  .feat-card:nth-child(7n+5)::before { background:#7c3aed; }
+  .feat-card:nth-child(7n+6)::before { background:#0ea5e9; }
+  .feat-card:nth-child(7n+7)::before { background:#f59e0b; }
   .feat-card:hover { transform:translateY(-6px); box-shadow:0 14px 30px rgba(15,18,24,.12); }
+  .feat-card:hover::before { height:6px; }
   .feat-card__img-wrap {
     aspect-ratio:1/1; background:#fff;
     display:flex; align-items:center; justify-content:center;
@@ -178,6 +197,105 @@
     .float-badge-r { right:12px !important; }
   }
   @media (max-width:680px) { .why-grid { grid-template-columns:1fr; } }
+
+  /* ── ЦВЕТНЫЕ СЕКЦИИ ── */
+  .home-section--videos {
+    background:linear-gradient(135deg,#f3e8ff 0%,#fce7f3 100%);
+    border-radius:24px; padding:36px 32px;
+    margin-left:32px; margin-right:32px;
+  }
+  .home-section--brands {
+    background:linear-gradient(135deg,#dcfce7 0%,#cffafe 100%);
+    border-radius:24px; padding:36px 32px;
+    margin-left:32px; margin-right:32px;
+  }
+  @media (max-width:768px) {
+    .home-section--videos, .home-section--brands {
+      margin-left:14px; margin-right:14px; padding:26px 20px;
+    }
+  }
+
+  /* ── ВИДЕО-ОБЗОРЫ ── */
+  .vr-carousel {
+    display:grid; grid-auto-flow:column; grid-auto-columns:340px; gap:18px;
+    overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;
+    padding:4px 1px 12px;
+  }
+  .vr-carousel::-webkit-scrollbar { display:none; }
+  .vr-card {
+    scroll-snap-align:start; background:#fff; border-radius:18px;
+    overflow:hidden; box-shadow:0 4px 18px rgba(15,18,24,.08);
+    cursor:pointer; transition:transform .2s, box-shadow .2s;
+  }
+  .vr-card:hover { transform:translateY(-5px); box-shadow:0 14px 30px rgba(15,18,24,.16); }
+  .vr-card__thumb {
+    position:relative; aspect-ratio:16/9; background:#0f1218;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .vr-card__thumb img { width:100%; height:100%; object-fit:cover; transition:transform .5s; }
+  .vr-card:hover .vr-card__thumb img { transform:scale(1.06); }
+  .vr-card__noimg { color:#888; font-size:50px; }
+  .vr-card__play {
+    position:absolute; width:64px; height:64px; border-radius:50%;
+    background:rgba(255,255,255,.95); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px rgba(0,0,0,.35); transition:transform .2s, background .2s;
+  }
+  .vr-card__play svg { width:24px; height:24px; margin-left:4px; }
+  .vr-card:hover .vr-card__play { transform:scale(1.12); background:var(--accent); color:#fff; }
+  .vr-card__title { padding:14px 16px; font-size:14px; font-weight:600; color:var(--heading); line-height:1.35; }
+  @media (max-width:560px) { .vr-carousel { grid-auto-columns:280px; gap:14px; } }
+
+  .vr-modal {
+    display:none; position:fixed; inset:0; z-index:2000;
+    background:rgba(8,10,14,.85); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .vr-modal.open { display:flex; animation:vrFade .2s ease; }
+  @keyframes vrFade { from{opacity:0;} to{opacity:1;} }
+  .vr-modal__box {
+    position:relative; width:100%; max-width:980px; aspect-ratio:16/9;
+    background:#000; border-radius:14px; overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+  }
+  .vr-modal__close {
+    position:absolute; top:-46px; right:0; width:40px; height:40px; border:none;
+    background:rgba(255,255,255,.15); color:#fff; border-radius:50%; cursor:pointer;
+    font-size:24px; line-height:1; transition:background .15s, transform .15s;
+  }
+  .vr-modal__close:hover { background:var(--accent); transform:scale(1.06); }
+  .vr-modal__player { width:100%; height:100%; }
+  .vr-modal__player iframe, .vr-modal__player video { width:100%; height:100%; border:0; }
+
+  /* ── БРЕНДЫ — БЕСКОНЕЧНЫЙ СЛАЙДЕР ── */
+  .brand-strip {
+    overflow:hidden; cursor:grab; user-select:none;
+    -webkit-user-select:none; touch-action:pan-y;
+    padding:8px 0 12px;
+    mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  }
+  .brand-strip:active { cursor:grabbing; }
+  .brand-track {
+    display:flex; gap:14px; will-change:transform;
+    transition:transform .2s linear;
+  }
+  .brand-track.no-transition { transition:none; }
+  .brand-chip {
+    flex-shrink:0; padding:14px 26px;
+    background:#fff; border:1px solid var(--border); border-radius:30px;
+    font-size:15px; font-weight:700; color:var(--heading);
+    letter-spacing:.5px; white-space:nowrap;
+    transition:border-color .15s, color .15s, transform .15s,
+               background .15s, box-shadow .15s;
+    pointer-events:auto;
+  }
+  .brand-chip:hover {
+    border-color:var(--accent); color:var(--accent);
+    box-shadow:0 6px 18px rgba(234,106,26,.18);
+    transform:translateY(-2px);
+  }
+  @media (max-width:560px) { .brand-chip { padding:11px 20px; font-size:13px; } }
 </style>
 {% endblock %}
 {% block content %}
@@ -327,6 +445,64 @@
 </section>
 {% endif %}
 
+<!-- ─── ВИДЕО-ОБЗОРЫ ─── -->
+{% if video_reviews %}
+<section class="home-section home-section--videos">
+  <div class="home-head">
+    <h2><span class="purple">ВИДЕО-ОБЗОРЫ</span> 🎬</h2>
+    <div style="color:var(--text-muted);font-size:13px;">{{ video_reviews|length }} ролик{{ video_reviews|length|pluralize:"ов" }}</div>
+  </div>
+  <div class="vr-carousel" id="vrCarousel">
+    {% for v in video_reviews %}
+    <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
+         {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}
+         onclick="vrPlay(this)">
+      <div class="vr-card__thumb">
+        {% if v.thumb %}
+          <img src="{{ v.thumb }}" alt="" loading="lazy">
+        {% else %}
+          <div class="vr-card__noimg">🎬</div>
+        {% endif %}
+        <div class="vr-card__play">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
+        </div>
+      </div>
+      {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- модальное окно для проигрывания -->
+<div class="vr-modal" id="vrModal" onclick="if(event.target===this)vrClose()">
+  <div class="vr-modal__box">
+    <button class="vr-modal__close" onclick="vrClose()" aria-label="Закрыть">&times;</button>
+    <div class="vr-modal__player" id="vrPlayer"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── БРЕНДЫ (бесконечный слайдер с touch-drag) ─── -->
+{% if top_brands %}
+<section class="home-section home-section--brands">
+  <div class="home-head">
+    <h2><span class="green">БРЕНДЫ</span></h2>
+    <div style="color:var(--text-muted);font-size:13px;">Тяните мышкой или пальцем →</div>
+  </div>
+  <div class="brand-strip" id="brandStrip">
+    <div class="brand-track" id="brandTrack">
+      {# дважды повторяем, чтобы получился бесшовный цикл #}
+      {% for b in top_brands %}
+      <a href="/catalog/?brand={{ b|urlencode }}" class="brand-chip">{{ b }}</a>
+      {% endfor %}
+      {% for b in top_brands %}
+      <a href="/catalog/?brand={{ b|urlencode }}" class="brand-chip">{{ b }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- ─── О НАС ─── -->
 <section id="about" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 0;margin-top:60px;">
   <div class="container">
@@ -456,6 +632,137 @@
   track.addEventListener('scroll', update);
   window.addEventListener('resize', update);
   update();
+})();
+
+/* ── Видео-обзоры: модалка с встроенным плеером ── */
+function vrPlay(card) {
+  var kind = card.dataset.kind;
+  var src = card.dataset.src;
+  var yid = card.dataset.yid;
+  var player = document.getElementById('vrPlayer');
+  var modal = document.getElementById('vrModal');
+  if (!player || !modal) return;
+  if (kind === 'youtube' && yid) {
+    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid +
+      '?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  } else if (kind === 'iframe') {
+    player.innerHTML = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  } else {
+    player.innerHTML = '<video src="' + src + '" controls autoplay></video>';
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function vrClose() {
+  var modal = document.getElementById('vrModal');
+  var player = document.getElementById('vrPlayer');
+  if (modal) modal.classList.remove('open');
+  if (player) player.innerHTML = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') vrClose();
+});
+
+/* ── Бесконечный бренд-слайдер с плавной автопрокруткой
+       и перехватом мышкой / пальцем ── */
+(function() {
+  var strip = document.getElementById('brandStrip');
+  var track = document.getElementById('brandTrack');
+  if (!strip || !track) return;
+
+  // Половина ширины трека = одна "копия" брендов; зацикливаем по этой границе.
+  function halfWidth() { return track.scrollWidth / 2; }
+
+  var offset = 0;
+  var speed = 0.4;        // px/кадр — медленный непрерывный ход
+  var dragging = false;
+  var startX = 0;
+  var startOffset = 0;
+  var lastMoveTs = 0;
+  var velocity = 0;
+  var idleResume = 0;
+  var rafId = null;
+
+  function applyTransform() {
+    var h = halfWidth();
+    if (h > 0) {
+      // нормализуем в диапазон [-h, 0], чтобы зацикливание было невидимым
+      offset = ((offset % h) + h) % h;
+      offset -= h;
+    }
+    track.style.transform = 'translate3d(' + offset + 'px,0,0)';
+  }
+
+  function tick() {
+    if (!dragging && Date.now() > idleResume) {
+      if (Math.abs(velocity) > 0.05) {
+        offset += velocity;
+        velocity *= 0.94;     // плавное замедление после броска
+      } else {
+        velocity = 0;
+        offset -= speed;       // постоянное движение влево
+      }
+      applyTransform();
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function getX(e) {
+    return e.touches ? e.touches[0].clientX : e.clientX;
+  }
+
+  function down(e) {
+    dragging = true;
+    track.classList.add('no-transition');
+    startX = getX(e);
+    startOffset = offset;
+    velocity = 0;
+    lastMoveTs = performance.now();
+  }
+  function move(e) {
+    if (!dragging) return;
+    var x = getX(e);
+    var prev = offset;
+    offset = startOffset + (x - startX);
+    var now = performance.now();
+    var dt = Math.max(1, now - lastMoveTs);
+    velocity = (offset - prev) * (16 / dt);
+    lastMoveTs = now;
+    applyTransform();
+    if (e.cancelable) e.preventDefault();
+  }
+  function up() {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove('no-transition');
+    idleResume = Date.now() + 1800;
+  }
+
+  strip.addEventListener('mousedown', down);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
+  strip.addEventListener('mouseleave', up);
+
+  strip.addEventListener('touchstart', down, { passive: true });
+  strip.addEventListener('touchmove', move, { passive: false });
+  strip.addEventListener('touchend', up);
+  strip.addEventListener('touchcancel', up);
+
+  // По клику на бренд переходим, но НЕ переходим, если был драг
+  track.querySelectorAll('.brand-chip').forEach(function(chip) {
+    var pressX = 0;
+    chip.addEventListener('mousedown', function(e) { pressX = e.clientX; });
+    chip.addEventListener('click', function(e) {
+      if (Math.abs(e.clientX - pressX) > 6) { e.preventDefault(); }
+    });
+  });
+
+  // Пауза при наведении мышью
+  strip.addEventListener('mouseenter', function() { idleResume = Date.now() + 60_000; });
+  strip.addEventListener('mouseleave', function() { idleResume = Date.now() + 400; });
+
+  rafId = requestAnimationFrame(tick);
 })();
 </script>
 {% endblock %}

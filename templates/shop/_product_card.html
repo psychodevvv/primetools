@@ -3,6 +3,9 @@
   <a href="/product/{{ p.pk }}/" class="product-card__img">
     {% if not p.in_stock %}<span class="stock-badge">Уточните наличие</span>{% endif %}
     {% if p.is_on_sale %}<span class="sale-badge">−{{ p.discount_percent }}%</span>{% endif %}
+    {% if p.video_embed %}<span class="video-badge" title="Есть видео-обзор">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>видео
+    </span>{% endif %}
     {% if p.image_url %}
       <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
     {% else %}

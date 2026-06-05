@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Category, Product, Order, OrderItem
+from .models import Category, Product, Order, OrderItem, VideoReview
 from .telegram import send_order_notification
 import json
 
@@ -28,11 +28,20 @@ def index(request):
         Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
         .order_by('?')[:8]
     )
+    # Видео-обзоры, которыми управляет админ.
+    video_reviews = list(VideoReview.objects.filter(is_active=True))
+    # Бренды для «бесконечного» слайдера.
+    top_brands = list(
+        Product.objects.exclude(brand='')
+        .values_list('brand', flat=True).distinct()[:30]
+    )
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,
         'hits': hits,
         'sales': sales,
+        'video_reviews': video_reviews,
+        'top_brands': top_brands,
     })
 
 

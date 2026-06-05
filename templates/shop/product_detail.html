@@ -90,6 +90,21 @@
     </div>
   </div>
 
+  {% if product.video_embed %}
+  <div class="product-video-section">
+    <h2 class="product-video-section__title">ВИДЕО-ОБЗОР</h2>
+    <div class="product-video-frame">
+      {% if product.video_kind == 'youtube' %}
+        <iframe src="{{ product.video_embed }}" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+      {% else %}
+        <video controls preload="metadata"><source src="{{ product.video_embed }}"></video>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {% if related %}
   <div style="margin-top:52px;">
     <h2 style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;margin-bottom:20px;color:var(--heading);">ПОХОЖИЕ ТОВАРЫ</h2>
@@ -122,6 +137,20 @@
   .pd-thumb.active { border-color:var(--accent); }
   .pd-thumb img { width:100%; height:100%; object-fit:contain; }
   @media(max-width:768px){ .product-detail-grid { grid-template-columns:1fr !important; } }
+
+  .product-video-section { margin-top:60px; }
+  .product-video-section__title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(26px,3.4vw,38px);
+    letter-spacing:1.2px; margin-bottom:20px; color:var(--heading);
+  }
+  .product-video-frame {
+    position:relative; width:100%; max-width:900px; aspect-ratio:16/9;
+    border-radius:18px; overflow:hidden; background:#000;
+    box-shadow:0 12px 36px rgba(15,18,24,.18);
+  }
+  .product-video-frame iframe, .product-video-frame video {
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+  }
 </style>
 
 {% block extra_js %}
