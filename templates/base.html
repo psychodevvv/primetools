@@ -312,6 +312,52 @@
       text-transform: uppercase; padding: 4px 9px; border-radius: 20px;
       box-shadow: 0 4px 10px rgba(124,58,237,.3); z-index: 1;
     }
+
+    /* ─── ОБЁРТКА ВНУТРЕННИХ СТРАНИЦ — карточка с цветным фоном ─── */
+    .page-card {
+      position: relative; overflow: hidden;
+      background:
+        radial-gradient(900px 360px at 100% -10%, rgba(234,106,26,.10), transparent 60%),
+        radial-gradient(700px 320px at -5% 100%, rgba(37,99,235,.10), transparent 65%),
+        linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fef3c7 100%);
+      border: 1px solid #fed7aa;
+      border-radius: 24px;
+      padding: 40px 44px;
+      margin-top: 12px; margin-bottom: 12px;
+      box-shadow: 0 8px 28px rgba(234,106,26,.08);
+    }
+    .page-card::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(45deg,
+        rgba(234,106,26,.02) 0 18px, transparent 18px 36px);
+    }
+    .page-card > * { position: relative; z-index: 1; }
+    .page-card--cool {
+      background:
+        radial-gradient(900px 360px at 100% -10%, rgba(14,165,233,.18), transparent 60%),
+        linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 60%, #dbeafe 100%);
+      border-color: #c8e2f5;
+      box-shadow: 0 8px 28px rgba(14,165,233,.08);
+    }
+    .page-card--cool::after {
+      background: repeating-linear-gradient(45deg,
+        rgba(14,165,233,.025) 0 18px, transparent 18px 36px);
+    }
+    .page-card--dark {
+      background:
+        radial-gradient(900px 360px at 8% 110%, rgba(234,106,26,.22), transparent 60%),
+        radial-gradient(700px 320px at 100% -20%, rgba(37,99,235,.30), transparent 65%),
+        linear-gradient(135deg,#0f172a 0%,#1e293b 70%,#0b1220 100%);
+      border-color: rgba(255,255,255,.08); color: #fff;
+      box-shadow: 0 16px 50px rgba(15,23,42,.30);
+    }
+    .page-card--dark::after {
+      background: repeating-linear-gradient(45deg,
+        rgba(255,255,255,.018) 0 18px, transparent 18px 36px);
+    }
+    @media (max-width: 768px) {
+      .page-card { padding: 26px 22px; border-radius: 18px; }
+    }
     .product-card__price .old {
       font-size: 14px; font-weight: 500; color: var(--text-dim);
       text-decoration: line-through; margin-right: 6px;

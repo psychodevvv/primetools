@@ -3,6 +3,7 @@
 {% block title %}{{ product.name }} — PrimeTools{% endblock %}
 {% block content %}
 <div class="container section">
+ <div class="page-card">
   <div style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">
     <a href="/" style="color:var(--text-muted);">Главная</a> /
     <a href="/catalog/?cat={{ product.category.slug }}" style="color:var(--text-muted);">{{ product.category.name }}</a> /
@@ -129,6 +130,7 @@
     </div>
   </div>
   {% endif %}
+ </div>
 </div>
 <style>
   .pd-thumb { width:66px; height:66px; padding:4px; cursor:pointer; background:var(--surface);
