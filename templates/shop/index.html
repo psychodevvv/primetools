@@ -201,6 +201,74 @@
   @media (max-width:680px) { .why-grid { grid-template-columns:1fr; } }
 
   /* ── ЦВЕТНЫЕ СЕКЦИИ — индустриальные тёмно-синие / тёплые ── */
+  .home-section--cats {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(700px 280px at 95% 8%, rgba(14,165,233,.15), transparent 60%),
+      linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);
+    border-radius:22px; padding:36px 32px;
+    margin-left:32px; margin-right:32px;
+    border:1px solid #c8e2f5;
+    box-shadow:0 6px 18px rgba(14,165,233,.08);
+  }
+  .home-section--hits {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(700px 320px at 5% 30%, rgba(234,106,26,.10), transparent 60%),
+      linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);
+    border-radius:22px; padding:36px 32px;
+    margin-left:32px; margin-right:32px;
+    border:1px solid #fed7aa;
+    box-shadow:0 6px 18px rgba(234,106,26,.08);
+  }
+  .home-section--sales {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(700px 280px at 95% 30%, rgba(220,38,38,.14), transparent 60%),
+      linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%);
+    border-radius:22px; padding:36px 32px;
+    margin-left:32px; margin-right:32px;
+    border:1px solid #fecaca;
+    box-shadow:0 6px 18px rgba(220,38,38,.08);
+  }
+  /* О компании — тёмный «индустриальный» блок с белым текстом */
+  .about-dark {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(900px 360px at 8% 110%, rgba(234,106,26,.22), transparent 60%),
+      radial-gradient(700px 320px at 100% -20%, rgba(37,99,235,.30), transparent 65%),
+      linear-gradient(135deg,#0f172a 0%,#1e293b 70%,#0b1220 100%);
+    padding:64px 0; margin-top:48px;
+    color:rgba(255,255,255,.9);
+  }
+  .about-dark::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(45deg,
+      rgba(255,255,255,.018) 0 18px, transparent 18px 36px);
+  }
+  .about-dark .eyebrow {
+    background:rgba(255,255,255,.10); color:#fbbf24;
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .about-dark .eyebrow .dot { background:#fbbf24; }
+  .about-dark .section-title { color:#fff; }
+  .about-dark .section-title span { color:#fbbf24; }
+  .about-dark p { color:rgba(255,255,255,.75) !important; }
+  /* плашки преимуществ внутри тёмного блока */
+  .about-dark .why-grid > div {
+    background:rgba(255,255,255,.05) !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+    color:#fff;
+  }
+  .about-dark .why-grid h3 { color:#fff !important; }
+  .about-dark .why-grid p { color:rgba(255,255,255,.65) !important; }
+  @media (max-width:768px) {
+    .home-section--cats, .home-section--hits, .home-section--sales {
+      margin-left:14px; margin-right:14px; padding:26px 20px;
+    }
+    .about-dark { margin-top:32px; padding:46px 0; }
+  }
+
   .home-section--videos {
     position:relative; overflow:hidden;
     background:
@@ -407,7 +475,7 @@
 </div>
 
 <!-- ─── ПОПУЛЯРНЫЕ КАТЕГОРИИ ─── -->
-<section class="home-section">
+<section class="home-section home-section--cats">
   <div class="home-head">
     <h2>ПОПУЛЯРНЫЕ <span class="accent">КАТЕГОРИИ</span></h2>
     <a href="#" onclick="toggleCatMenu(true);return false;">Все категории
@@ -443,7 +511,7 @@
 
 <!-- ─── ХИТЫ ПРОДАЖ ─── -->
 {% if hits %}
-<section class="home-section">
+<section class="home-section home-section--hits">
   <div class="home-head">
     <h2>ХИТЫ <span class="accent">ПРОДАЖ</span></h2>
     <a href="/catalog/">В каталог
@@ -458,7 +526,7 @@
 
 <!-- ─── РАСПРОДАЖА ─── -->
 {% if sales %}
-<section class="home-section">
+<section class="home-section home-section--sales">
   <div class="home-head">
     <h2><span class="red">РАСПРОДАЖА</span></h2>
     <a href="/catalog/?sale=1">Вся распродажа
@@ -530,7 +598,7 @@
 {% endif %}
 
 <!-- ─── О НАС ─── -->
-<section id="about" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 0;margin-top:60px;">
+<section id="about" class="about-dark">
   <div class="container">
     <div class="eyebrow"><span class="dot"></span>О компании</div>
     <h2 class="section-title">НАДЁЖНЫЙ <span>ПОСТАВЩИК</span> ИНСТРУМЕНТА</h2>
@@ -669,10 +737,13 @@ function vrPlay(card) {
   var modal = document.getElementById('vrModal');
   if (!player || !modal) return;
   if (kind === 'youtube' && yid) {
-    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid +
-      '?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    // youtube-nocookie + минимум параметров — наименьшая вероятность ошибки 153
+    player.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yid +
+      '?rel=0&modestbranding=1&playsinline=1" frameborder="0" ' +
+      'allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
   } else if (kind === 'iframe') {
-    player.innerHTML = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    player.innerHTML = '<iframe src="' + src + '" frameborder="0" ' +
+      'allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>';
   } else {
     player.innerHTML = '<video src="' + src + '" controls autoplay></video>';
   }

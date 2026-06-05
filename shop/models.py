@@ -65,7 +65,16 @@ class Product(models.Model):
         """URL для встраиваемого <iframe> либо <video>. Пусто, если видео нет."""
         if self.video_file:
             return self.video_file.url
-        return self.video_url or ''
+        url = self.video_url or ''
+        if not url:
+            return ''
+        # нормализуем YouTube → youtube-nocookie/embed/ID (надёжнее, реже ошибка 153)
+        import re
+        m = re.search(r'(?:youtube\.com/(?:embed/|watch\?v=)|youtu\.be/)([\w-]{6,})', url)
+        if m:
+            return ('https://www.youtube-nocookie.com/embed/' + m.group(1)
+                    + '?rel=0&modestbranding=1&playsinline=1')
+        return url
 
     @property
     def video_kind(self):
