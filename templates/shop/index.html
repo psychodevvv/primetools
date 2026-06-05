@@ -107,11 +107,13 @@
     letter-spacing:1.2px; line-height:1; color:var(--heading);
   }
   .home-head h2 span.accent { color:var(--accent); }
-  .home-head h2 span.red { color:#cc1f1f; }
+  .home-head h2 span.red { color:#dc2626; }
   .home-head h2 span.purple { color:#7c3aed; }
   .home-head h2 span.green { color:#16a34a; }
   .home-head h2 span.blue { color:#2563eb; }
   .home-head h2 span.cyan { color:#0ea5e9; }
+  .home-head h2 span.yellow { color:#f59e0b; }
+  .home-head h2 span.orange { color:#ea580c; }
   .home-head a {
     font-size:13px; font-weight:700; color:var(--accent);
     text-transform:uppercase; letter-spacing:.6px;
@@ -198,17 +200,33 @@
   }
   @media (max-width:680px) { .why-grid { grid-template-columns:1fr; } }
 
-  /* ── ЦВЕТНЫЕ СЕКЦИИ ── */
+  /* ── ЦВЕТНЫЕ СЕКЦИИ — индустриальные тёмно-синие / тёплые ── */
   .home-section--videos {
-    background:linear-gradient(135deg,#f3e8ff 0%,#fce7f3 100%);
-    border-radius:24px; padding:36px 32px;
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(900px 360px at 90% 110%, rgba(234,106,26,.22), transparent 60%),
+      radial-gradient(700px 320px at -10% -20%, rgba(37,99,235,.35), transparent 65%),
+      linear-gradient(135deg,#0f172a 0%,#1e293b 70%,#0b1220 100%);
+    border-radius:22px; padding:42px 36px;
     margin-left:32px; margin-right:32px;
+    box-shadow:0 16px 50px rgba(15,23,42,.25);
+  }
+  .home-section--videos::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(45deg,
+      rgba(255,255,255,.018) 0 18px, transparent 18px 36px);
   }
   .home-section--brands {
-    background:linear-gradient(135deg,#dcfce7 0%,#cffafe 100%);
-    border-radius:24px; padding:36px 32px;
+    background:
+      linear-gradient(180deg, #fff7e6 0%, #ffe9c7 60%, #ffe3b6 100%);
+    border-radius:22px; padding:36px 32px;
     margin-left:32px; margin-right:32px;
+    box-shadow:0 8px 24px rgba(234,106,26,.10);
+    border:1px solid #fbd49a;
   }
+  /* инверсивный заголовок для тёмной секции */
+  .home-head--invert h2 { color:#fff; }
+  .home-head--invert h2 span.yellow { color:#fbbf24; }
   @media (max-width:768px) {
     .home-section--videos, .home-section--brands {
       margin-left:14px; margin-right:14px; padding:26px 20px;
@@ -272,30 +290,38 @@
     overflow:hidden; cursor:grab; user-select:none;
     -webkit-user-select:none; touch-action:pan-y;
     padding:8px 0 12px;
-    mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
-    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
   }
   .brand-strip:active { cursor:grabbing; }
   .brand-track {
-    display:flex; gap:14px; will-change:transform;
+    display:flex; gap:12px; will-change:transform;
     transition:transform .2s linear;
   }
   .brand-track.no-transition { transition:none; }
   .brand-chip {
     flex-shrink:0; padding:14px 26px;
-    background:#fff; border:1px solid var(--border); border-radius:30px;
-    font-size:15px; font-weight:700; color:var(--heading);
+    background:#fff; border:2px solid transparent; border-radius:30px;
+    font-size:15px; font-weight:800; color:#0f172a;
     letter-spacing:.5px; white-space:nowrap;
-    transition:border-color .15s, color .15s, transform .15s,
-               background .15s, box-shadow .15s;
+    transition:transform .15s, box-shadow .15s, border-color .15s;
     pointer-events:auto;
+    box-shadow:0 3px 8px rgba(15,23,42,.08);
   }
+  /* цикл цветных рамок — добавляем «жизни» полосе */
+  .brand-chip:nth-child(8n+1) { border-color:#ea6a1a; }
+  .brand-chip:nth-child(8n+2) { border-color:#2563eb; }
+  .brand-chip:nth-child(8n+3) { border-color:#16a34a; }
+  .brand-chip:nth-child(8n+4) { border-color:#dc2626; }
+  .brand-chip:nth-child(8n+5) { border-color:#7c3aed; }
+  .brand-chip:nth-child(8n+6) { border-color:#0ea5e9; }
+  .brand-chip:nth-child(8n+7) { border-color:#f59e0b; }
+  .brand-chip:nth-child(8n+8) { border-color:#0f172a; }
   .brand-chip:hover {
-    border-color:var(--accent); color:var(--accent);
-    box-shadow:0 6px 18px rgba(234,106,26,.18);
-    transform:translateY(-2px);
+    transform:translateY(-3px);
+    box-shadow:0 10px 22px rgba(15,23,42,.18);
   }
-  @media (max-width:560px) { .brand-chip { padding:11px 20px; font-size:13px; } }
+  @media (max-width:560px) { .brand-chip { padding:10px 18px; font-size:13px; } }
 </style>
 {% endblock %}
 {% block content %}
@@ -434,7 +460,7 @@
 {% if sales %}
 <section class="home-section">
   <div class="home-head">
-    <h2><span class="red">РАСПРОДАЖА</span> 🔥</h2>
+    <h2><span class="red">РАСПРОДАЖА</span></h2>
     <a href="/catalog/?sale=1">Вся распродажа
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
@@ -448,9 +474,9 @@
 <!-- ─── ВИДЕО-ОБЗОРЫ ─── -->
 {% if video_reviews %}
 <section class="home-section home-section--videos">
-  <div class="home-head">
-    <h2><span class="purple">ВИДЕО-ОБЗОРЫ</span> 🎬</h2>
-    <div style="color:var(--text-muted);font-size:13px;">{{ video_reviews|length }} ролик{{ video_reviews|length|pluralize:"ов" }}</div>
+  <div class="home-head home-head--invert">
+    <h2><span class="yellow">ВИДЕО</span>-ОБЗОРЫ</h2>
+    <div style="color:rgba(255,255,255,.55);font-size:13px;">{{ video_reviews|length }} ролик{{ video_reviews|length|pluralize:"ов" }}</div>
   </div>
   <div class="vr-carousel" id="vrCarousel">
     {% for v in video_reviews %}
@@ -461,7 +487,7 @@
         {% if v.thumb %}
           <img src="{{ v.thumb }}" alt="" loading="lazy">
         {% else %}
-          <div class="vr-card__noimg">🎬</div>
+          <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
         {% endif %}
         <div class="vr-card__play">
           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
@@ -486,8 +512,8 @@
 {% if top_brands %}
 <section class="home-section home-section--brands">
   <div class="home-head">
-    <h2><span class="green">БРЕНДЫ</span></h2>
-    <div style="color:var(--text-muted);font-size:13px;">Тяните мышкой или пальцем →</div>
+    <h2>ПОПУЛЯРНЫЕ <span class="orange">БРЕНДЫ</span></h2>
+    <div style="color:var(--text-muted);font-size:13px;">Тяните мышкой или пальцем</div>
   </div>
   <div class="brand-strip" id="brandStrip">
     <div class="brand-track" id="brandTrack">
