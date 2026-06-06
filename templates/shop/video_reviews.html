@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Видео-обзоры — PrimeTools{% endblock %}
+{% block content %}
+<div class="container section">
+ <div class="page-card page-card--dark">
+  <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5.4vw,52px);letter-spacing:1.5px;margin:0 0 6px;line-height:1;color:#fff;">
+    <span style="color:#fbbf24;">ВИДЕО</span>-ОБЗОРЫ
+  </h1>
+  <p style="color:rgba(255,255,255,.6);font-size:14px;margin:0 0 26px;">
+    {{ videos|length }} ролик{{ videos|length|pluralize:"ов" }} — кликните, чтобы посмотреть
+  </p>
+
+  {% if videos %}
+  <div class="vr-grid">
+    {% for v in videos %}
+    <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
+         {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}
+         onclick="vrPlay(this)">
+      <div class="vr-card__thumb">
+        {% if v.thumb %}
+          <img src="{{ v.thumb }}" alt="" loading="lazy">
+        {% else %}
+          <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
+        {% endif %}
+        <div class="vr-card__play">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
+        </div>
+      </div>
+      {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);">
+    Видео-обзоры пока не добавлены.
+  </div>
+  {% endif %}
+ </div>
+</div>
+
+<!-- модалка проигрывателя -->
+<div class="vr-modal" id="vrModal" onclick="if(event.target===this)vrClose()">
+  <div class="vr-modal__box">
+    <button class="vr-modal__close" onclick="vrClose()" aria-label="Закрыть">&times;</button>
+    <div class="vr-modal__player" id="vrPlayer"></div>
+  </div>
+</div>
+
+<style>
+  .vr-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:18px;
+  }
+  .vr-card {
+    background:#fff; border-radius:18px; overflow:hidden; cursor:pointer;
+    box-shadow:0 6px 22px rgba(0,0,0,.25);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .vr-card:hover { transform:translateY(-4px); box-shadow:0 14px 32px rgba(0,0,0,.35); }
+  .vr-card__thumb {
+    position:relative; aspect-ratio:16/9; background:#0f1218;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .vr-card__thumb img { width:100%; height:100%; object-fit:cover; }
+  .vr-card__noimg { color:#888; }
+  .vr-card__play {
+    position:absolute; width:60px; height:60px; border-radius:50%;
+    background:rgba(255,255,255,.95); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px rgba(0,0,0,.35);
+  }
+  .vr-card__play svg { width:22px; height:22px; margin-left:4px; }
+  .vr-card__title { padding:13px 16px; font-size:14px; font-weight:600; color:var(--heading); line-height:1.35; }
+
+  .vr-modal {
+    display:none; position:fixed; inset:0; z-index:2000;
+    background:rgba(8,10,14,.85);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .vr-modal.open { display:flex; }
+  .vr-modal__box {
+    position:relative; width:100%; max-width:980px; aspect-ratio:16/9;
+    background:#000; border-radius:14px; overflow:hidden;
+  }
+  .vr-modal__close {
+    position:absolute; top:-46px; right:0; width:40px; height:40px; border:none;
+    background:rgba(255,255,255,.15); color:#fff; border-radius:50%; cursor:pointer;
+    font-size:24px; line-height:1;
+  }
+  .vr-modal__close:hover { background:var(--accent); }
+  .vr-modal__player { width:100%; height:100%; }
+  .vr-modal__player iframe, .vr-modal__player video { width:100%; height:100%; border:0; }
+
+  @media (max-width:560px) {
+    .vr-grid { grid-template-columns:1fr; gap:14px; }
+  }
+</style>
+
+<script>
+function vrPlay(card) {
+  var kind = card.dataset.kind, src = card.dataset.src, yid = card.dataset.yid;
+  var player = document.getElementById('vrPlayer');
+  var modal = document.getElementById('vrModal');
+  if (kind === 'youtube' && yid) {
+    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid + '?rel=0"' +
+      ' frameborder="0" allow="accelerometer; clipboard-write; encrypted-media;' +
+      ' gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  } else if (kind === 'iframe') {
+    player.innerHTML = '<iframe src="' + src + '" frameborder="0" allowfullscreen></iframe>';
+  } else {
+    player.innerHTML = '<video src="' + src + '" controls preload="metadata" playsinline></video>';
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function vrClose() {
+  document.getElementById('vrModal').classList.remove('open');
+  document.getElementById('vrPlayer').innerHTML = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') vrClose(); });
+</script>
+{% endblock %}

@@ -68,12 +68,11 @@ class Product(models.Model):
         url = self.video_url or ''
         if not url:
             return ''
-        # нормализуем YouTube → youtube-nocookie/embed/ID (надёжнее, реже ошибка 153)
+        # Любую ссылку YouTube приводим к простому embed-URL — он стабильно играется.
         import re
         m = re.search(r'(?:youtube\.com/(?:embed/|watch\?v=)|youtu\.be/)([\w-]{6,})', url)
         if m:
-            return ('https://www.youtube-nocookie.com/embed/' + m.group(1)
-                    + '?rel=0&modestbranding=1&playsinline=1')
+            return 'https://www.youtube.com/embed/' + m.group(1) + '?rel=0'
         return url
 
     @property

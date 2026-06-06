@@ -16,26 +16,54 @@ from shop.models import Brand, Product
 
 QAZTOOL_DB = r'C:\Users\QazTool\Desktop\qaztoolsite\db.sqlite3'
 
-# Резервные логотипы (Wikimedia / производители) — на случай если qaztool
-# недоступен или не охватывает бренд из нашего каталога.
+# Логотипы. Проверяй через `manage.py verify_brand_logos` — битые удаляются,
+# бренд тогда показывается как название. Wikimedia ссылки наиболее стабильны.
 EXTRA_LOGOS = {
-    'BOSCH':    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bosch-logo.svg/2560px-Bosch-logo.svg.png',
-    'METABO':   'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Metabo_Logo.svg/2560px-Metabo_Logo.svg.png',
-    'DEWALT':   'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/DeWalt_Logo.svg/2560px-DeWalt_Logo.svg.png',
-    'MAKITA':   'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makita_Logo.svg/2560px-Makita_Logo.svg.png',
-    'MILWAUKEE':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Milwaukee_Logo.svg/2560px-Milwaukee_Logo.svg.png',
-    'HITACHI':  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Hitachi_inspire_the_next_logo.svg/2560px-Hitachi_inspire_the_next_logo.svg.png',
-    'STAYER':   'https://www.stayer-instrument.ru/image/catalog/stayer_logo.png',
-    'KRAFTOOL': 'https://www.instrument18.ru/upload/iblock/3e3/3e3f728e3d3cb876a81a9582d7341185.png',
-    'ЗУБР':     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%97%D0%A3%D0%91%D0%A0.png/640px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%97%D0%A3%D0%91%D0%A0.png',
-    'YATO':     'https://yato.kz/upload/medialibrary/3df/3df8a9b96e3b8d3e7e3f73a0e76b5f1b.png',
-    'TOPTUL':   'https://www.toptul.com/site/images/logo.png',
-    'FUBAG':    'https://fubag.ru/local/templates/fubag_v2/assets/img/logo.svg',
-    'FISKARS':  'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Fiskars_logo.svg/2560px-Fiskars_logo.svg.png',
-    'GARDENA':  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Logo_Gardena.svg/2560px-Logo_Gardena.svg.png',
-    'WORTEX':   'https://wortex.ru/upload/iblock/d0e/wortex.png',
-    'SPARTA':   'https://www.gross.ru/local/templates/.default/img/sparta-logo.png',
-    'TEKHMASH': 'https://tehmash.kz/upload/iblock/abc/abc-tehmash.png',
+    # верифицированные Wikimedia URL (svg → png через /thumb/)
+    'BOSCH':     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bosch-logo.svg/2560px-Bosch-logo.svg.png',
+    'METABO':    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Metabo_logo.svg/2560px-Metabo_logo.svg.png',
+    'DEWALT':    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/DeWalt_Logo.svg/2560px-DeWalt_Logo.svg.png',
+    'MAKITA':    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makita_Logo.svg/2560px-Makita_Logo.svg.png',
+    'MILWAUKEE': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Milwaukee_Logo.svg/2560px-Milwaukee_Logo.svg.png',
+    'HITACHI':   'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Hitachi_inspire_the_next_logo.svg/2560px-Hitachi_inspire_the_next_logo.svg.png',
+    'HIKOKI':    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/HiKOKI_logo.svg/2560px-HiKOKI_logo.svg.png',
+    'STIHL':     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Stihl_logo.svg/2560px-Stihl_logo.svg.png',
+    'HUSQVARNA': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Husqvarna_AB_logo.svg/2560px-Husqvarna_AB_logo.svg.png',
+    'FISKARS':   'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Fiskars_logo.svg/2560px-Fiskars_logo.svg.png',
+    'GARDENA':   'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Logo_Gardena.svg/2560px-Logo_Gardena.svg.png',
+    'KARCHER':   'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/K%C3%A4rcher_Logo.svg/2560px-K%C3%A4rcher_Logo.svg.png',
+    'KÄRCHER':   'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/K%C3%A4rcher_Logo.svg/2560px-K%C3%A4rcher_Logo.svg.png',
+    'EINHELL':   'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Einhell_logo.svg/2560px-Einhell_logo.svg.png',
+    'BLACK+DECKER': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Black_%26_Decker_Logo.svg/2560px-Black_%26_Decker_Logo.svg.png',
+    'STANLEY':   'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Stanley_Hand_Tools_logo.svg/2560px-Stanley_Hand_Tools_logo.svg.png',
+    'AEG':       'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/AEG_logo.svg/2560px-AEG_logo.svg.png',
+    'RYOBI':     'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Ryobi_logo.svg/2560px-Ryobi_logo.svg.png',
+    'INTERSKOL': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Logo_INTERSKOL.svg/2560px-Logo_INTERSKOL.svg.png',
+    'ИНТЕРСКОЛ': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Logo_INTERSKOL.svg/2560px-Logo_INTERSKOL.svg.png',
+    'PATRIOT':   'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Patriot_logo.svg/2560px-Patriot_logo.svg.png',
+    'KRESS':     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Kress_logo.svg/2560px-Kress_logo.svg.png',
+    'CRAFTSMAN': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Craftsman_logo.svg/2560px-Craftsman_logo.svg.png',
+    'WAGNER':    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Wagner_Group_Logo.svg/2560px-Wagner_Group_Logo.svg.png',
+    'SONY':      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Sony_logo.svg/2560px-Sony_logo.svg.png',
+    'SAMSUNG':   'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/2560px-Samsung_Logo.svg.png',
+    'HUAWEI':    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Huawei_Standard_logo.svg/2560px-Huawei_Standard_logo.svg.png',
+    'XIAOMI':    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Xiaomi_logo_%282021-%29.svg/2560px-Xiaomi_logo_%282021-%29.svg.png',
+    'APPLE':     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1024px-Apple_logo_black.svg.png',
+    'HP':        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/HP_logo_2008.svg/1024px-HP_logo_2008.svg.png',
+    'CANON':     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Canon_wordmark.svg/2560px-Canon_wordmark.svg.png',
+    'PHILIPS':   'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Philips_logo_new.svg/2560px-Philips_logo_new.svg.png',
+    'LG':        'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/LG_symbol.svg/2560px-LG_symbol.svg.png',
+    'BRENNENSTUHL': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Brennenstuhl-Logo.svg/2560px-Brennenstuhl-Logo.svg.png',
+    'OLFA':      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/OLFA_Corporation_logo.svg/2560px-OLFA_Corporation_logo.svg.png',
+    'KOBALT':    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Kobalt_Tools_logo.svg/2560px-Kobalt_Tools_logo.svg.png',
+    'PROXXON':   'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Proxxon_Logo.svg/2560px-Proxxon_Logo.svg.png',
+    'YATO':      'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Yato_logo.svg/2560px-Yato_logo.svg.png',
+    'KAPRO':     'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Kapro_logo.svg/2560px-Kapro_logo.svg.png',
+    'CHAMPION':  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Champion_Logo_2018.svg/2560px-Champion_Logo_2018.svg.png',
+    'GROSS':     'https://www.gross-online.com/local/templates/.default/img/logo.svg',
+    'STAYER':    'https://www.stayer-instrument.ru/image/catalog/stayer_logo.png',
+    'KRAFTOOL':  'https://www.instrument18.ru/upload/iblock/3e3/3e3f728e3d3cb876a81a9582d7341185.png',
+    'ЗУБР':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%97%D0%A3%D0%91%D0%A0.png/640px-%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%97%D0%A3%D0%91%D0%A0.png',
 }
 
 
@@ -80,14 +108,19 @@ class Command(BaseCommand):
             con.close()
             self.stdout.write(self.style.SUCCESS('Из qaztool добавлено/обновлено.'))
 
-        # 2) популярные бренды каталога PrimeTools
-        top_names = list(
+        # 2) ВСЕ бренды каталога PrimeTools — у кого нет лого, идут как текст.
+        from django.db.models import Count
+        all_names = list(
             Product.objects.exclude(brand='')
-            .values_list('brand', flat=True).distinct()[:60]
+            .values('brand').annotate(n=Count('id'))
+            .order_by('-n').values_list('brand', flat=True)
         )
-        for raw in top_names:
+        for raw in all_names:
             name = (raw or '').strip()
-            if not name:
+            if not name or len(name) > 100:
+                continue
+            # отсекаем явный мусор (артикулы вместо брендов, числа, и т.п.)
+            if name.replace('-', '').replace(' ', '').isdigit():
                 continue
             key = name.upper()
             b = existing.get(key)

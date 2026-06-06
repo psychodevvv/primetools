@@ -699,28 +699,55 @@
       }
     }
     @media (max-width: 768px) {
-      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 20px; padding-bottom: 26px; }
       .container, .header-inner, .search-wrap-inner, .footer-bottom, .footer-grid {
-        padding-left: 22px; padding-right: 22px;
+        padding-left: 14px; padding-right: 14px;
       }
+      .section { padding: 32px 0; }
+      .section-title { font-size: clamp(22px, 7vw, 36px); }
+      .section-sub { font-size: 13px; margin-bottom: 20px; }
+      .btn { padding: 10px 18px; font-size: 13px; }
+      .btn-lg { padding: 11px 20px; font-size: 13px; }
+      .btn-sm { padding: 7px 12px; font-size: 11.5px; }
+      .eyebrow { margin-bottom: 12px; padding: 5px 11px; font-size: 10.5px; }
+      .form-control { padding: 10px 13px; font-size: 14px; }
+      .form-label { font-size: 10.5px; margin-bottom: 6px; }
     }
     @media (max-width: 560px) {
-      .logo { font-size: 22px; }
-      .section { padding: 36px 0; }
-      .section-sub { font-size: 14px; margin-bottom: 24px; }
-      .section-title { font-size: clamp(30px, 9vw, 44px); }
+      .logo { font-size: 19px; letter-spacing: 1px; }
+      .header-inner { height: 56px; }
+      .cat-megamenu { top: 56px; max-height: calc(100vh - 56px); }
+      .section { padding: 26px 0; }
+      .section-title { font-size: clamp(20px, 7vw, 30px); }
+      .section-sub { font-size: 12.5px; margin-bottom: 16px; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .product-card { border-radius: 12px; }
+      .product-card__img { aspect-ratio: 1/1; }
+      .product-card__body { padding: 10px; }
+      .product-card__brand { font-size: 9.5px; margin-bottom: 4px; letter-spacing: 1px; }
+      .product-card__name { font-size: 12.5px; -webkit-line-clamp: 2; margin-bottom: 6px; line-height: 1.35; }
+      .product-card__price { font-size: 15px; }
+      .product-card__price .cur { font-size: 11px; }
+      .product-card__price .old { font-size: 11px; }
+      .product-card__footer { padding: 0 10px 10px; gap: 5px; }
+      .product-card__footer .btn { padding: 8px; font-size: 11px; }
+      .sale-badge, .stock-badge { font-size: 9.5px; padding: 3px 7px; }
+      .video-badge { font-size: 9px; padding: 3px 7px; }
+      .search-wrap button { padding: 10px 12px; font-size: 12px; }
+      .search-wrap input { padding: 10px 14px; font-size: 14px; }
+      .btn-lg { padding: 10px 16px; font-size: 12.5px; }
+      .icon-btn { width: 36px; height: 36px; }
+      .icon-btn svg { width: 16px; height: 16px; }
+      .burger { width: 36px; height: 36px; }
+      .cart-link { width: 36px; height: 36px; }
+      .cart-link svg { width: 17px; height: 17px; }
+      .cart-link .cart-badge { min-width: 16px; height: 16px; font-size: 9px; top: -2px; right: -2px; }
+      .cat-bar a { font-size: 11px; padding: 10px 13px; letter-spacing: .4px; }
+      .cat-bar .dot { width: 5px; height: 5px; }
       .container, .header-inner, .search-wrap-inner, .footer-bottom, .footer-grid {
-        padding-left: 20px; padding-right: 20px;
+        padding-left: 12px; padding-right: 12px;
       }
-      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-      .product-card__body { padding: 12px; }
-      .product-card__name { -webkit-line-clamp: 2; margin-bottom: 8px; }
-      .product-card__price { font-size: 18px; }
-      .product-card__footer { padding: 0 12px 12px; flex-direction: column; gap: 7px; }
-      .product-card__footer .btn { width: 100%; padding: 11px; }
-      .search-wrap button { padding: 12px 15px; }
-      .btn-lg { padding: 13px 22px; font-size: 14px; }
-      .eyebrow { margin-bottom: 14px; padding: 6px 13px; font-size: 11px; }
+      .page-card { padding: 18px 14px; border-radius: 14px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -825,6 +852,10 @@
     <a href="/#about">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
       О нас
+    </a>
+    <a href="/videos/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><polygon points="10,9 15,12 10,15" fill="currentColor"/></svg>
+      Видео-обзоры
     </a>
     <a href="/#delivery">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h12v9H1z"/><path d="M13 10h4l4 4v2h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>

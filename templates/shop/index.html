@@ -62,18 +62,23 @@
   }
   .ps-dot.active { background:#fff; width:28px; border-radius:5px; }
   @media (max-width:768px) {
-    .promo-slider { padding:0 22px; margin-top:14px; }
-    .ps-track { min-height:260px; }
-    .ps-slide { padding:26px 32px; }
-    .ps-prev { left:18px; } .ps-next { right:18px; }
+    .promo-slider { padding:0 14px; margin-top:12px; }
+    .ps-track { min-height:200px; border-radius:14px; }
+    .ps-slide { padding:20px 24px; }
+    .ps-prev { left:14px; } .ps-next { right:14px; }
+    .ps-title { font-size:clamp(24px, 6.4vw, 38px); }
   }
   @media (max-width:560px) {
-    .ps-track { min-height:230px; }
+    .ps-track { min-height:175px; border-radius:12px; }
     .ps-nav { display:none; }
-    .ps-slide { padding:22px 22px 46px; }
-    .ps-text { font-size:13px; line-height:1.45; margin-bottom:14px; }
-    .ps-btn { padding:10px 18px; font-size:12px; }
-    .ps-eye { padding:5px 12px; font-size:11px; margin-bottom:10px; }
+    .ps-slide { padding:16px 16px 36px; }
+    .ps-eye { padding:4px 9px; font-size:10px; margin-bottom:8px; }
+    .ps-title { font-size:clamp(20px, 7vw, 30px); letter-spacing:.3px; margin-bottom:6px; }
+    .ps-text { font-size:11.5px; line-height:1.4; margin-bottom:10px; }
+    .ps-btn { padding:8px 14px; font-size:11px; }
+    .ps-dots { bottom:10px; gap:5px; }
+    .ps-dot { width:6px; height:6px; }
+    .ps-dot.active { width:18px; }
   }
 
   /* ── СТАТЫ ── */
@@ -264,9 +269,33 @@
   @media (max-width:768px) {
     .home-section--cats, .home-section--hits, .home-section--sales,
     .home-section--videos, .home-section--brands {
-      padding:26px 20px;
+      padding:18px 14px; border-radius:16px;
     }
-    .about-dark { margin-top:32px; padding:46px 0; }
+    .about-dark { margin-top:24px; padding:34px 0; }
+  }
+  @media (max-width:560px) {
+    .home-section { margin:22px auto 0; padding:0 12px; }
+    .home-section--cats, .home-section--hits, .home-section--sales,
+    .home-section--videos, .home-section--brands {
+      padding:14px 12px; border-radius:14px;
+    }
+    .home-head { margin-bottom:10px; }
+    .home-head h2 { font-size:clamp(22px, 6.6vw, 30px); }
+    .home-head a { font-size:11px; }
+    .feat-cats__scroll { grid-auto-columns:140px; gap:10px; }
+    .feat-card__body { padding:10px 12px 12px; }
+    .feat-card__name { font-size:12.5px; }
+    .feat-card__count { font-size:11px; }
+    .vr-carousel { grid-auto-columns:220px; gap:10px; }
+    .vr-card__title { padding:10px 12px; font-size:12.5px; }
+    .vr-card__play { width:48px; height:48px; }
+    .vr-card__play svg { width:18px; height:18px; }
+    .stat-strip { padding:0 12px; gap:8px; }
+    .stat-card { padding:12px 14px; gap:10px; border-radius:12px; }
+    .stat-card__icon { width:34px; height:34px; border-radius:8px; }
+    .stat-card__icon svg { width:17px; height:17px; }
+    .stat-card__num { font-size:21px; }
+    .stat-card__lbl { font-size:9.5px; letter-spacing:.6px; }
   }
 
   .home-section--videos {
@@ -373,24 +402,28 @@
   }
   .brand-chip {
     flex-shrink:0;
-    width:200px; height:96px;
-    background:rgba(255,255,255,.04);
+    min-width:160px; height:86px;
+    background:rgba(255,255,255,.05);
     border:1px solid rgba(255,255,255,.10);
-    border-radius:18px;
+    border-radius:14px;
     display:flex; align-items:center; justify-content:center;
-    padding:14px 22px;
+    padding:12px 22px;
     pointer-events:auto;
+    color:#fff;
+    font-family:'Inter', sans-serif; font-weight:800; font-size:15px;
+    letter-spacing:.4px; text-transform:uppercase; white-space:nowrap;
   }
+  .brand-chip.has-logo { padding:12px 18px; }
   .brand-chip img {
-    max-width:100%; max-height:64px;
+    max-width:100%; max-height:58px;
     object-fit:contain;
-    filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));
+    filter:brightness(1.1) drop-shadow(0 2px 6px rgba(0,0,0,.35));
     -webkit-user-drag:none; user-drag:none;
   }
-  .brand-chip:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.18); }
+  .brand-chip:hover { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.22); }
   @media (max-width:560px) {
-    .brand-chip { width:150px; height:78px; padding:10px 16px; }
-    .brand-chip img { max-height:52px; }
+    .brand-chip { min-width:120px; height:64px; padding:10px 14px; font-size:13px; }
+    .brand-chip img { max-height:42px; }
   }
 </style>
 {% endblock %}
@@ -546,7 +579,13 @@
 <section class="home-section home-section--videos">
   <div class="home-head home-head--invert">
     <h2><span class="yellow">ВИДЕО</span>-ОБЗОРЫ</h2>
+    {% if video_reviews_total > video_reviews|length %}
+    <a href="/videos/" style="color:#fbbf24;">Все обзоры ({{ video_reviews_total }})
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+    {% else %}
     <div style="color:rgba(255,255,255,.55);font-size:13px;">{{ video_reviews|length }} ролик{{ video_reviews|length|pluralize:"ов" }}</div>
+    {% endif %}
   </div>
   <div class="vr-carousel" id="vrCarousel">
     {% for v in video_reviews %}
@@ -589,13 +628,13 @@
     <div class="brand-track" id="brandTrack">
       {# дважды повторяем, чтобы получился бесшовный цикл #}
       {% for b in top_brands %}
-      <a href="/catalog/?brand={{ b.name|urlencode }}" class="brand-chip" title="{{ b.name }}">
-        <img src="{{ b.logo_src }}" alt="{{ b.name }}" loading="lazy">
+      <a href="/catalog/?brand={{ b.name|urlencode }}" class="brand-chip{% if b.logo_src %} has-logo{% endif %}" title="{{ b.name }}">
+        {% if b.logo_src %}<img src="{{ b.logo_src }}" alt="{{ b.name }}" loading="lazy">{% else %}{{ b.name }}{% endif %}
       </a>
       {% endfor %}
       {% for b in top_brands %}
-      <a href="/catalog/?brand={{ b.name|urlencode }}" class="brand-chip" title="{{ b.name }}">
-        <img src="{{ b.logo_src }}" alt="{{ b.name }}" loading="lazy">
+      <a href="/catalog/?brand={{ b.name|urlencode }}" class="brand-chip{% if b.logo_src %} has-logo{% endif %}" title="{{ b.name }}">
+        {% if b.logo_src %}<img src="{{ b.logo_src }}" alt="{{ b.name }}" loading="lazy">{% else %}{{ b.name }}{% endif %}
       </a>
       {% endfor %}
     </div>
@@ -743,15 +782,15 @@ function vrPlay(card) {
   var modal = document.getElementById('vrModal');
   if (!player || !modal) return;
   if (kind === 'youtube' && yid) {
-    // youtube-nocookie + минимум параметров — наименьшая вероятность ошибки 153
-    player.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yid +
-      '?rel=0&modestbranding=1&playsinline=1" frameborder="0" ' +
-      'allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    // самый базовый embed-URL — работает везде, не требует автоплея/жестов
+    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid + '?rel=0"' +
+      ' frameborder="0" allow="accelerometer; clipboard-write; encrypted-media;' +
+      ' gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
   } else if (kind === 'iframe') {
-    player.innerHTML = '<iframe src="' + src + '" frameborder="0" ' +
-      'allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    player.innerHTML = '<iframe src="' + src + '" frameborder="0"' +
+      ' allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
   } else {
-    player.innerHTML = '<video src="' + src + '" controls autoplay></video>';
+    player.innerHTML = '<video src="' + src + '" controls preload="metadata" playsinline></video>';
   }
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';

@@ -28,19 +28,33 @@ def index(request):
         Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
         .order_by('?')[:8]
     )
-    # Видео-обзоры, которыми управляет админ.
-    video_reviews = list(VideoReview.objects.filter(is_active=True))
-    # Бренды для «бесконечного» слайдера (с логотипами).
-    top_brands = list(Brand.objects.filter(featured=True).exclude(
-        logo='', logo_url=''))
+    # На главной показываем только 3 видео-обзора; остальное — на /videos/.
+    video_reviews = list(VideoReview.objects.filter(is_active=True)[:3])
+    video_reviews_total = VideoReview.objects.filter(is_active=True).count()
+    # ВСЕ бренды с приоритетом тех, у кого есть лого.
+    from django.db.models import Case, When, Value, IntegerField
+    top_brands = list(Brand.objects.filter(featured=True).annotate(
+        has_logo=Case(
+            When(logo__gt='', then=Value(0)),
+            When(logo_url__gt='', then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        )
+    ).order_by('has_logo', 'order', 'name'))
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,
         'hits': hits,
         'sales': sales,
         'video_reviews': video_reviews,
+        'video_reviews_total': video_reviews_total,
         'top_brands': top_brands,
     })
+
+
+def video_reviews_page(request):
+    videos = VideoReview.objects.filter(is_active=True)
+    return render(request, 'shop/video_reviews.html', {'videos': videos})
 
 
 def catalog(request):
