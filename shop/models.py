@@ -135,6 +135,34 @@ class Order(models.Model):
         self.save()
 
 
+class Brand(models.Model):
+    """Бренд для блока «Бренды» на главной — с логотипом."""
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
+    logo = models.FileField(upload_to='brand_logos/', blank=True, null=True,
+        help_text='Файл-логотип (SVG/PNG/JPG). Если задан, перебивает logo_url.')
+    logo_url = models.URLField(blank=True,
+        help_text='URL логотипа (используется, если файл не загружен).')
+    website = models.URLField(blank=True)
+    featured = models.BooleanField(default=True,
+        help_text='Показывать в слайдере брендов на главной.')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Бренд'
+        verbose_name_plural = 'Бренды'
+        ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def logo_src(self):
+        if self.logo:
+            return self.logo.url
+        return self.logo_url or ''
+
+
 class VideoReview(models.Model):
     """Видео-обзор для главной страницы. Управляется из админки."""
     title = models.CharField(max_length=200, blank=True,

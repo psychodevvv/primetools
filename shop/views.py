@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Category, Product, Order, OrderItem, VideoReview
+from .models import Category, Product, Order, OrderItem, VideoReview, Brand
 from .telegram import send_order_notification
 import json
 
@@ -30,11 +30,9 @@ def index(request):
     )
     # Видео-обзоры, которыми управляет админ.
     video_reviews = list(VideoReview.objects.filter(is_active=True))
-    # Бренды для «бесконечного» слайдера.
-    top_brands = list(
-        Product.objects.exclude(brand='')
-        .values_list('brand', flat=True).distinct()[:30]
-    )
+    # Бренды для «бесконечного» слайдера (с логотипами).
+    top_brands = list(Brand.objects.filter(featured=True).exclude(
+        logo='', logo_url=''))
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,

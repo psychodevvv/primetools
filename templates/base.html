@@ -394,38 +394,120 @@
     .footer-col a:hover { color: var(--accent-light); }
     .footer-bottom { max-width: 1400px; margin: 0 auto; padding: 22px 32px 0; display: flex; justify-content: space-between; align-items: center; color: #6b7280; font-size: 13px; flex-wrap: wrap; gap: 8px; }
 
-    /* ═══ АНИМАЦИИ И ОЖИВЛЕНИЕ ═══ */
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
-    @keyframes pulseDot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.55); opacity: .45; } }
-    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+    /* ═══ АНИМАЦИИ (минимум) ═══ */
+    /* Никакой постоянной пульсации, никакой ленты «появлений при скролле»;
+       только короткие переходы на hover, чтобы UI не казался застывшим. */
+    .reveal, .reveal.in { opacity: 1; }
 
-    /* появление блоков при прокрутке */
-    .reveal { opacity: 0; }
-    .reveal.in { opacity: 1; animation: fadeUp .6s cubic-bezier(.22,.7,.25,1) backwards; }
+    /* ═══ ИСТОРИЯ ПОИСКА В ШАПКЕ ═══ */
+    .sh-history {
+      border-top: 1px solid var(--border);
+      padding: 8px 0; background: var(--surface);
+    }
+    .sh-history__head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 16px 4px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--text-muted);
+    }
+    .sh-history__clear {
+      background: none; border: none; cursor: pointer; padding: 2px 4px;
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    .sh-history__clear:hover { color: var(--accent-dark); }
+    .sh-history__list { display: flex; flex-direction: column; }
+    .sh-history__item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+      cursor: pointer; color: var(--text); font-size: 14px;
+    }
+    .sh-history__item:hover { background: var(--surface-2); }
+    .sh-history__item svg { width: 14px; height: 14px; color: var(--text-dim); flex-shrink: 0; }
+    .sh-history__item span { flex: 1; }
+    .sh-history__remove {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      padding: 2px 6px; font-size: 14px; line-height: 1;
+    }
+    .sh-history__remove:hover { color: var(--danger); }
 
-    /* акцентная «живая» точка */
-    .eyebrow .dot { animation: pulseDot 2.2s ease-in-out infinite; }
+    /* ═══ МОБИЛЬНАЯ НИЖНЯЯ ПАНЕЛЬ (Главная / Каталог / Поиск / Корзина / Профиль) ═══ */
+    .mobile-bottombar { display: none; }
+    @media (max-width: 768px) {
+      .mobile-bottombar {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1100;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -6px 22px rgba(15,18,24,.10);
+        padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+        justify-content: space-around;
+      }
+      .mbb-link {
+        position: relative;
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        gap: 3px; padding: 8px 4px; border-radius: var(--radius-sm);
+        font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: .4px;
+      }
+      .mbb-link svg { width: 22px; height: 22px; }
+      .mbb-link.active { color: var(--accent); }
+      .mbb-link:active { background: var(--accent-soft); }
+      .mbb-badge {
+        position: absolute; top: 4px; right: calc(50% - 18px);
+        min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9px;
+        background: var(--accent); color: #fff; font-size: 9.5px; font-weight: 800;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      /* Поднимаем тосты, чтобы не закрывались под нижней панелью */
+      body { padding-bottom: 68px; }
+      .messages { bottom: 78px; }
+    }
+
+    /* Поисковое модальное окно для мобильных */
+    .search-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 2100;
+      background: rgba(0,0,0,.45);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    .search-modal.open { display: flex; flex-direction: column; }
+    .search-modal__bar {
+      background: var(--surface);
+      padding: 12px 14px calc(12px + env(safe-area-inset-top));
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+    .search-modal__close {
+      width: 36px; height: 36px; border: none; background: var(--surface-2);
+      border-radius: 50%; cursor: pointer; color: var(--heading);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .search-modal__close svg { width: 18px; height: 18px; }
+    .search-modal form { flex: 1; display: flex; gap: 8px; }
+    .search-modal input {
+      flex: 1; min-width: 0; padding: 11px 14px;
+      background: var(--surface-2); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;
+      font-size: 15px; outline: none;
+    }
+    .search-modal input:focus { border-color: var(--accent); background: #fff; }
+    .search-modal__body {
+      flex: 1; background: var(--surface); overflow-y: auto;
+    }
 
     /* кнопки */
     .btn { will-change: transform; }
     .btn:active { transform: scale(.96); }
     .btn-primary:hover { box-shadow: 0 10px 26px var(--accent-glow); }
 
-    /* карточка товара — зум фото на ховере */
-    .product-card__img img { transition: transform .5s cubic-bezier(.2,.7,.2,1); }
-    .product-card:hover .product-card__img img { transform: scale(1.08); }
-    .product-card:hover .stock-badge { transform: translateY(-1px); }
-    .stock-badge { transition: transform .15s; }
+    /* карточка товара — лёгкий зум фото на ховере */
+    .product-card__img img { transition: transform .35s ease; }
+    .product-card:hover .product-card__img img { transform: scale(1.04); }
 
-    /* иконки и корзина в шапке */
-    .icon-btn { transition: background .18s, color .18s, transform .16s; }
-    .icon-btn:hover { transform: scale(1.1) rotate(-8deg); }
-    .icon-btn:active { transform: scale(.9); }
-    .cart-link:hover { transform: translateY(-2px); box-shadow: 0 9px 22px var(--accent-glow); }
-    .cart-badge { transition: transform .2s; }
-    .cart-link:hover .cart-badge { transform: scale(1.15); }
-    .logo { transition: transform .2s; }
-    .logo:hover { transform: scale(1.04); }
+    /* иконки и корзина в шапке — без вращения и скейла */
+    .icon-btn { transition: background .15s, color .15s; }
+    .icon-btn:active { background: var(--accent-soft); }
+    .cart-link:hover { background: var(--accent-dark); }
 
     /* подчёркивание пунктов меню */
     .header-nav a { position: relative; }
@@ -693,6 +775,13 @@
           <button type="submit">Найти</button>
         </form>
         <div class="search-results" id="searchResults"></div>
+        <div class="sh-history" id="searchHistory" style="display:none;">
+          <div class="sh-history__head">
+            <span>Недавние запросы</span>
+            <button type="button" class="sh-history__clear" onclick="shClear()">Очистить</button>
+          </div>
+          <div class="sh-history__list" id="searchHistoryList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -775,6 +864,62 @@
   </div>
 </aside>
 
+<!-- ─── НИЖНЯЯ МОБИЛЬНАЯ ПАНЕЛЬ ─── -->
+<nav class="mobile-bottombar" aria-label="Главная навигация">
+  <a href="/" class="mbb-link {% if request.path == '/' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+    Главная
+  </a>
+  <a href="/catalog/" class="mbb-link {% if request.path == '/catalog/' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Каталог
+  </a>
+  <a href="#" class="mbb-link" onclick="openSearchModal();return false;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.7-4.7"/></svg>
+    Поиск
+  </a>
+  <a href="/cart/" class="mbb-link {% if request.path == '/cart/' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 9.4a2 2 0 0 1-2 1.6H8.2a2 2 0 0 1-2-1.6L5 7Z"/><path d="M8.5 7V5.5a3.5 3.5 0 0 1 7 0V7"/></svg>
+    Корзина
+    {% if cart_count %}<span class="mbb-badge">{{ cart_count }}</span>{% endif %}
+  </a>
+  {% if request.session.customer_id %}
+  <a href="/account/profile/" class="mbb-link {% if '/account' in request.path %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Профиль
+  </a>
+  {% else %}
+  <a href="#" class="mbb-link" onclick="toggleDrawer(true);return false;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Меню
+  </a>
+  {% endif %}
+</nav>
+
+<!-- ─── МОДАЛЬНОЕ ОКНО ПОИСКА (мобильный) ─── -->
+<div class="search-modal" id="searchModal" role="dialog" aria-label="Поиск">
+  <div class="search-modal__bar">
+    <button type="button" class="search-modal__close" onclick="closeSearchModal()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12H19"/><path d="M12 5l-7 7 7 7"/></svg>
+    </button>
+    <form action="/search/" method="get" autocomplete="off">
+      <input type="text" name="q" id="searchModalInput" placeholder="Поиск по названию или артикулу...">
+    </form>
+  </div>
+  <div class="search-modal__body">
+    <div class="search-box">
+      <div class="search-results" id="searchModalResults" style="position:static;border-radius:0;border:none;box-shadow:none;max-height:none;"></div>
+      <div class="sh-history" id="searchModalHistory" style="display:none;border:none;">
+        <div class="sh-history__head">
+          <span>Недавние запросы</span>
+          <button type="button" class="sh-history__clear" onclick="shClear()">Очистить</button>
+        </div>
+        <div class="sh-history__list" id="searchModalHistoryList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% block cat_nav %}
 <div class="cat-bar-wrap">
   <button class="cat-scroll cat-scroll--left hidden" id="catLeft" onclick="scrollCats(-1)" aria-label="Назад">
@@ -842,9 +987,82 @@
 
 <script>
 function toggleSearch() {
+  // На мобильных открываем модалку — там больше места и история запросов на весь экран.
+  if (window.innerWidth <= 768) { openSearchModal(); return; }
   var wrap = document.getElementById('searchWrap');
   wrap.classList.toggle('open');
-  if (wrap.classList.contains('open')) setTimeout(function(){ document.getElementById('searchInput').focus(); }, 60);
+  if (wrap.classList.contains('open')) {
+    setTimeout(function(){ document.getElementById('searchInput').focus(); }, 60);
+    shRenderInto(document.getElementById('searchHistory'),
+                 document.getElementById('searchHistoryList'));
+  }
+}
+
+/* ─── история поиска (localStorage) ─── */
+var SH_KEY = 'pt-search-history';
+function shGet() {
+  try { return JSON.parse(localStorage.getItem(SH_KEY) || '[]'); } catch (e) { return []; }
+}
+function shSave(list) {
+  try { localStorage.setItem(SH_KEY, JSON.stringify(list.slice(0, 8))); } catch (e) {}
+}
+function shAdd(q) {
+  q = (q || '').trim();
+  if (q.length < 2) return;
+  var list = shGet().filter(function(x){ return x.toLowerCase() !== q.toLowerCase(); });
+  list.unshift(q);
+  shSave(list);
+}
+function shRemove(q) {
+  shSave(shGet().filter(function(x){ return x !== q; }));
+  // перерисовать все открытые блоки истории
+  shRenderInto(document.getElementById('searchHistory'),
+               document.getElementById('searchHistoryList'));
+  shRenderInto(document.getElementById('searchModalHistory'),
+               document.getElementById('searchModalHistoryList'));
+}
+function shClear() {
+  shSave([]);
+  shRenderInto(document.getElementById('searchHistory'),
+               document.getElementById('searchHistoryList'));
+  shRenderInto(document.getElementById('searchModalHistory'),
+               document.getElementById('searchModalHistoryList'));
+}
+function shRenderInto(wrapEl, listEl) {
+  if (!wrapEl || !listEl) return;
+  var list = shGet();
+  if (!list.length) { wrapEl.style.display = 'none'; listEl.innerHTML = ''; return; }
+  var icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
+  listEl.innerHTML = list.map(function(q) {
+    var enc = encodeURIComponent(q);
+    return '<div class="sh-history__item" data-q="' + srEsc(q) + '">'
+         + icon
+         + '<span onclick="location.href=\'/search/?q=' + enc + '\'">' + srEsc(q) + '</span>'
+         + '<button type="button" class="sh-history__remove" aria-label="Убрать"'
+         + ' onclick="event.stopPropagation();shRemove(\'' + q.replace(/'/g,"\\'") + '\')">&times;</button>'
+         + '</div>';
+  }).join('');
+  wrapEl.style.display = 'block';
+}
+
+/* ─── модалка поиска (mobile) ─── */
+function openSearchModal() {
+  var m = document.getElementById('searchModal');
+  if (!m) return;
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  shRenderInto(document.getElementById('searchModalHistory'),
+               document.getElementById('searchModalHistoryList'));
+  setTimeout(function(){
+    var inp = document.getElementById('searchModalInput');
+    if (inp) inp.focus();
+  }, 80);
+}
+function closeSearchModal() {
+  var m = document.getElementById('searchModal');
+  if (!m) return;
+  m.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* live search — подсказки по мере ввода (для всех блоков .search-box) */
@@ -881,10 +1099,21 @@ function setupLiveSearch(box) {
     results.classList.add('open');
   }
 
+  // блок истории, лежащий внутри той же .search-box
+  var histWrap = box.querySelector('.sh-history');
+  var histList = histWrap ? histWrap.querySelector('.sh-history__list') : null;
+
+  function showHistory() {
+    results.classList.remove('open'); results.innerHTML = '';
+    shRenderInto(histWrap, histList);
+  }
+  function hideHistory() { if (histWrap) histWrap.style.display = 'none'; }
+
   input.addEventListener('input', function() {
     clearTimeout(timer);
     var q = this.value.trim();
-    if (q.length < 2) { results.classList.remove('open'); results.innerHTML = ''; return; }
+    if (q.length < 2) { showHistory(); return; }
+    hideHistory();
     timer = setTimeout(function() {
       fetch('/search/suggest/?q=' + encodeURIComponent(q))
         .then(function(r){ return r.json(); })
@@ -893,10 +1122,20 @@ function setupLiveSearch(box) {
     }, 220);
   });
   input.addEventListener('focus', function() {
-    if (results.innerHTML && this.value.trim().length >= 2) results.classList.add('open');
+    var q = this.value.trim();
+    if (q.length < 2) { showHistory(); }
+    else if (results.innerHTML) { results.classList.add('open'); }
   });
+  // сохраняем запрос в историю перед отправкой формы
+  var form = box.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function() { shAdd(input.value); });
+  }
   document.addEventListener('click', function(e) {
-    if (!box.contains(e.target)) results.classList.remove('open');
+    if (!box.contains(e.target)) {
+      results.classList.remove('open');
+      hideHistory();
+    }
   });
 }
 document.querySelectorAll('.search-box').forEach(setupLiveSearch);

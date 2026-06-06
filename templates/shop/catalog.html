@@ -12,44 +12,10 @@
     </button>
 
     <!-- SIDEBAR -->
-    <aside class="catalog-aside" id="catalogAside" style="width:250px;flex-shrink:0;">
+    <aside class="catalog-aside" id="catalogAside" style="width:270px;flex-shrink:0;">
 
-      <!-- Категории -->
-      <div class="cat-panel">
-        <div class="cat-panel__head">Категории</div>
-        <div class="cat-panel__body">
-          <a href="/catalog/" class="cat-link {% if not active_category %}active{% endif %}">Все товары</a>
-          <div id="catList">
-            {% for cat in nav_categories %}
-            <a href="/catalog/?cat={{ cat.slug }}"
-               class="cat-link{% if forloop.counter0 >= 10 %} cat-extra{% endif %}{% if active_parent.id == cat.id %} active{% endif %}">{{ cat.name }}</a>
-            {% endfor %}
-          </div>
-          {% if nav_categories|length > 10 %}
-          <button type="button" id="catMore" onclick="toggleCats()" class="cat-more">
-            Ещё {{ nav_categories|length|add:"-10" }} ▾
-          </button>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Подразделы текущего раздела -->
-      {% if subcategories %}
-      <div class="cat-panel" style="margin-top:14px;">
-        <div class="cat-panel__head">{{ active_parent.name }}</div>
-        <div class="cat-panel__body">
-          <a href="/catalog/?cat={{ active_parent.slug }}"
-             class="cat-link {% if active_category.id == active_parent.id %}active{% endif %}">Весь раздел</a>
-          {% for sub in subcategories %}
-          <a href="/catalog/?cat={{ sub.slug }}"
-             class="cat-link {% if active_category.id == sub.id %}active{% endif %}">{{ sub.name }}</a>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Фильтры -->
-      <form method="get" class="cat-panel" style="margin-top:14px;">
+      <!-- Фильтры (теперь ВЫШЕ категорий) -->
+      <form method="get" class="cat-panel">
         <div class="cat-panel__head">Фильтры</div>
         <div style="padding:14px;">
           {% if active_category %}<input type="hidden" name="cat" value="{{ active_category.slug }}">{% endif %}
@@ -85,7 +51,7 @@
           <label style="display:flex;align-items:center;gap:9px;margin-top:10px;cursor:pointer;font-size:14px;color:#cc1f1f;font-weight:600;">
             <input type="checkbox" name="sale" value="1" {% if sale_only %}checked{% endif %}
                    style="width:17px;height:17px;accent-color:#cc1f1f;">
-            🔥 Только распродажа
+            Только распродажа
           </label>
 
           <label class="form-label" style="margin-top:14px;">Сортировка</label>
@@ -101,6 +67,33 @@
              class="btn btn-outline btn-sm" style="width:100%;margin-top:8px;justify-content:center;">Сбросить фильтры</a>
         </div>
       </form>
+
+      <!-- Все категории (скроллящийся блок) -->
+      <div class="cat-panel" style="margin-top:14px;">
+        <div class="cat-panel__head">Категории</div>
+        <div class="cat-panel__body cat-panel__body--scroll">
+          <a href="/catalog/" class="cat-link {% if not active_category %}active{% endif %}">Все товары</a>
+          {% for cat in nav_categories %}
+          <a href="/catalog/?cat={{ cat.slug }}"
+             class="cat-link {% if active_parent.id == cat.id %}active{% endif %}">{{ cat.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Подразделы текущего раздела (скроллящийся блок) -->
+      {% if subcategories %}
+      <div class="cat-panel" style="margin-top:14px;">
+        <div class="cat-panel__head">{{ active_parent.name }}</div>
+        <div class="cat-panel__body cat-panel__body--scroll">
+          <a href="/catalog/?cat={{ active_parent.slug }}"
+             class="cat-link {% if active_category.id == active_parent.id %}active{% endif %}">Весь раздел</a>
+          {% for sub in subcategories %}
+          <a href="/catalog/?cat={{ sub.slug }}"
+             class="cat-link {% if active_category.id == sub.id %}active{% endif %}">{{ sub.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </aside>
 
     <!-- MAIN -->
@@ -150,14 +143,20 @@
   .cat-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
   .cat-panel__head { background:var(--heading); padding:12px 16px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#fff; }
   .cat-panel__body { padding:6px; }
-  .cat-link { display:block; padding:9px 13px; font-size:13.5px; border-radius:var(--radius-sm); color:var(--text); transition:all .15s; }
+  /* категории / подкатегории — фиксированная высота со скроллом */
+  .cat-panel__body--scroll {
+    max-height: 360px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+  }
+  .cat-panel__body--scroll::-webkit-scrollbar { width: 8px; }
+  .cat-panel__body--scroll::-webkit-scrollbar-track { background: transparent; }
+  .cat-panel__body--scroll::-webkit-scrollbar-thumb {
+    background: var(--border-strong); border-radius: 6px; border: 2px solid var(--surface);
+  }
+  .cat-panel__body--scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  .cat-link { display:block; padding:9px 13px; font-size:13.5px; border-radius:var(--radius-sm); color:var(--text); }
   .cat-link:hover { background:var(--surface-2); }
   .cat-link.active { background:var(--accent-soft); color:var(--accent); font-weight:700; }
-  .cat-extra { display:none; }
-  #catList.expanded .cat-extra { display:block; }
-  .cat-more { width:100%; background:transparent; border:none; border-top:1px solid var(--border); margin-top:4px;
-    padding:10px; cursor:pointer; font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
-    text-transform:uppercase; letter-spacing:.5px; color:var(--accent); }
   .page-btn { min-width:38px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center;
     background:var(--surface); border:1px solid var(--border-strong); border-radius:var(--radius-sm);
     color:var(--heading); font-size:14px; font-weight:600; transition:all .15s; }
@@ -177,12 +176,6 @@
 
 {% block extra_js %}
 <script>
-function toggleCats() {
-  var list = document.getElementById('catList');
-  var btn = document.getElementById('catMore');
-  var open = list.classList.toggle('expanded');
-  btn.textContent = open ? 'Свернуть ▴' : 'Показать все ▾';
-}
 function toggleFilters() {
   var aside = document.getElementById('catalogAside');
   var btn = document.querySelector('.catalog-filter-toggle span');
