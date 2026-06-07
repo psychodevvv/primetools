@@ -10,44 +10,55 @@ from django.core.management.base import BaseCommand
 from shop.models import Brand
 
 _HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+    'User-Agent': 'PrimeToolsBot/1.0 (https://primetools.kz; admin@primetools.kz)'
 }
 
 
 def check(url):
+    """Возвращает 'ok' (рабочее изображение), 'bad' (404/403/не картинка),
+    либо 'unknown' (сеть/таймаут — оставляем как есть).
+    """
     if not url:
-        return False
-    try:
-        r = requests.get(url, timeout=12, headers=_HEADERS, stream=True,
-                         allow_redirects=True)
-        if r.status_code != 200:
-            return False
-        ct = (r.headers.get('Content-Type') or '').lower()
-        if 'image' in ct or 'svg' in ct:
-            return True
-        # некоторые CDN отдают octet-stream — пробуем по байтам
-        chunk = next(r.iter_content(16), b'')
-        sig = chunk[:8]
-        return (sig.startswith(b'\x89PNG') or sig.startswith(b'\xff\xd8')
-                or sig.startswith(b'GIF8') or b'<svg' in chunk.lower())
-    except requests.RequestException:
-        return False
+        return 'bad'
+    for attempt in range(2):
+        try:
+            r = requests.get(url, timeout=20, headers=_HEADERS, stream=True,
+                             allow_redirects=True)
+            if r.status_code in (200,):
+                ct = (r.headers.get('Content-Type') or '').lower()
+                if 'image' in ct or 'svg' in ct:
+                    return 'ok'
+                chunk = next(r.iter_content(32), b'')
+                sig = chunk[:8]
+                if (sig.startswith(b'\x89PNG') or sig.startswith(b'\xff\xd8')
+                        or sig.startswith(b'GIF8') or b'<svg' in chunk.lower()
+                        or sig.startswith(b'RIFF')):
+                    return 'ok'
+                return 'bad'
+            if r.status_code in (403, 404, 410, 451):
+                return 'bad'
+            return 'unknown'
+        except requests.RequestException:
+            continue
+    return 'unknown'
 
 
 class Command(BaseCommand):
-    help = 'Проверяет logo_url у Brand и очищает битые.'
+    help = 'Проверяет logo_url у Brand. Удаляет только явно битые (404/etc), таймауты не трогает.'
 
     def handle(self, *args, **options):
         brands = list(Brand.objects.exclude(logo_url=''))
-        self.stdout.write(f'Проверяю {len(brands)} ссылок на лого…')
+        self.stdout.write(f'Проверяю {len(brands)} ссылок (4 потока, 20s timeout)…')
         results = {}
-        with ThreadPoolExecutor(max_workers=12) as pool:
-            for b, ok in zip(brands, pool.map(lambda b: check(b.logo_url), brands)):
-                results[b.pk] = ok
+        # ниже параллелизм — Wikimedia/SimpleIcons менее склонны к 429
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            for b, status in zip(brands, pool.map(lambda b: check(b.logo_url), brands)):
+                results[b.pk] = status
 
-        bad = [b for b in brands if not results.get(b.pk)]
-        self.stdout.write(f'Битых: {len(bad)} из {len(brands)}')
+        bad = [b for b in brands if results.get(b.pk) == 'bad']
+        unknown = [b for b in brands if results.get(b.pk) == 'unknown']
+        self.stdout.write(f'  ok: {len(brands)-len(bad)-len(unknown)}, '
+                          f'bad: {len(bad)}, неопределённо (оставляем): {len(unknown)}')
         for b in bad:
             self.stdout.write(f'  ✕ {b.name}: {b.logo_url[:80]}')
             b.logo_url = ''
