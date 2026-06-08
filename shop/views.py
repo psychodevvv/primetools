@@ -24,22 +24,31 @@ def _has_image_first(qs, then_random=True):
 
 
 def _search_q(query):
-    """Корректный поиск.
-
-    Если запрос содержит цифры и не содержит пробелов (явно артикул) —
-    ищем ТОЛЬКО точное совпадение по полю article. Никаких partial-
-    substring matches, так что '20610' не зацепит товар, в имени
-    которого встречается '312320610423' или артикул 'AVE206100'.
-
-    Если запрос текстовый (буквы/пробелы) — обычный contains-поиск
-    по названию и артикулу.
-    """
+    """Просто широкий contains-фильтр (для случая, когда нет точного артикула)."""
     q = (query or '').strip()
     if not q:
         return Q()
-    if ' ' not in q and any(c.isdigit() for c in q):
-        return Q(article__iexact=q)
     return Q(name__icontains=q) | Q(article__icontains=q)
+
+
+def _search_apply(base_qs, query):
+    """Умный поиск.
+
+    1) Если запрос «похож на артикул» (есть цифры, нет пробелов) и
+       находится товар с ТОЧНО таким article — возвращаем только его.
+       Так '20610' даёт ровно один товар, не цепляя `AVE206100` или
+       название с «312320610423».
+    2) Иначе (или если точного совпадения нет) — обычный широкий
+       поиск по name+article.
+    """
+    q = (query or '').strip()
+    if not q:
+        return base_qs.none()
+    if ' ' not in q and any(c.isdigit() for c in q):
+        exact = base_qs.filter(article__iexact=q)
+        if exact.exists():
+            return exact
+    return base_qs.filter(Q(name__icontains=q) | Q(article__icontains=q))
 
 
 def index(request):
@@ -61,10 +70,9 @@ def index(request):
         Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
         .order_by('?')[:8]
     )
-    # На главной показываем 4 видео-обзора; остальное — на /videos/.
-    # Тоже рандом, чтобы лента не была одинаковой каждый раз.
-    video_reviews = list(VideoReview.objects.filter(is_active=True).order_by('?')[:4])
-    video_reviews_total = VideoReview.objects.filter(is_active=True).count()
+    # На главной — ВСЕ видео-обзоры, в случайном порядке (бесконечный слайдер).
+    video_reviews = list(VideoReview.objects.filter(is_active=True).order_by('?'))
+    video_reviews_total = len(video_reviews)
     # ВСЕ бренды с приоритетом тех, у кого есть лого — внутри группы перемешано.
     top_brands = list(Brand.objects.filter(featured=True).annotate(
         has_logo=Case(
@@ -111,7 +119,7 @@ def catalog(request):
     if brand_filter:
         products = products.filter(brand__iexact=brand_filter)
     if search_query:
-        products = products.filter(_search_q(search_query))
+        products = _search_apply(products, search_query)
     if price_min:
         try:
             products = products.filter(price__gte=float(price_min.replace(',', '.')))
@@ -201,7 +209,7 @@ def search(request):
     q = request.GET.get('q', '').strip()
     if q:
         products = list(_has_image_first(
-            Product.objects.filter(_search_q(q))
+            _search_apply(Product.objects.all(), q)
         )[:40])
     else:
         products = []
@@ -214,7 +222,7 @@ def search_suggest(request):
     results = []
     if len(q) >= 2:
         products = _has_image_first(
-            Product.objects.filter(_search_q(q))
+            _search_apply(Product.objects.all(), q)
         )[:8]
         for p in products:
             results.append({
