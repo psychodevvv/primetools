@@ -3,19 +3,52 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 from .models import Category, Product, Order, OrderItem, VideoReview, Brand
 from .telegram import send_order_notification
 import json
+import re
+
+
+def _has_image_first(qs, then_random=True):
+    """Аннотирует queryset так, чтобы товары с фото шли первыми,
+    а внутри каждой группы — случайный порядок."""
+    qs = qs.annotate(
+        _hi=Case(
+            When(image_url='', then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    )
+    return qs.order_by('_hi', '?') if then_random else qs.order_by('_hi')
+
+
+def _search_q(query):
+    """Корректный поиск.
+
+    Если запрос содержит цифры и не содержит пробелов (явно артикул) —
+    ищем ТОЛЬКО точное совпадение по полю article. Никаких partial-
+    substring matches, так что '20610' не зацепит товар, в имени
+    которого встречается '312320610423' или артикул 'AVE206100'.
+
+    Если запрос текстовый (буквы/пробелы) — обычный contains-поиск
+    по названию и артикулу.
+    """
+    q = (query or '').strip()
+    if not q:
+        return Q()
+    if ' ' not in q and any(c.isdigit() for c in q):
+        return Q(article__iexact=q)
+    return Q(name__icontains=q) | Q(article__icontains=q)
 
 
 def index(request):
-    from django.db.models import Count
-    # Топ-категории с количеством товаров — для «крутого» блока с карточками.
+    from django.db.models import Count, Case, When, Value, IntegerField
+    # Топ-категории — случайные при каждом обновлении.
     featured_categories = list(
         Category.objects.filter(parent__isnull=True)
         .annotate(prod_count=Count('products'))
-        .order_by('-prod_count')[:12]
+        .order_by('?')[:12]
     )
     total_products = Product.objects.count()
     # Хиты продаж — случайные товары с фото и в наличии.
@@ -28,11 +61,11 @@ def index(request):
         Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
         .order_by('?')[:8]
     )
-    # На главной показываем только 3 видео-обзора; остальное — на /videos/.
-    video_reviews = list(VideoReview.objects.filter(is_active=True)[:3])
+    # На главной показываем 4 видео-обзора; остальное — на /videos/.
+    # Тоже рандом, чтобы лента не была одинаковой каждый раз.
+    video_reviews = list(VideoReview.objects.filter(is_active=True).order_by('?')[:4])
     video_reviews_total = VideoReview.objects.filter(is_active=True).count()
-    # ВСЕ бренды с приоритетом тех, у кого есть лого.
-    from django.db.models import Case, When, Value, IntegerField
+    # ВСЕ бренды с приоритетом тех, у кого есть лого — внутри группы перемешано.
     top_brands = list(Brand.objects.filter(featured=True).annotate(
         has_logo=Case(
             When(logo__gt='', then=Value(0)),
@@ -40,7 +73,7 @@ def index(request):
             default=Value(1),
             output_field=IntegerField(),
         )
-    ).order_by('has_logo', 'order', 'name'))
+    ).order_by('has_logo', '?'))
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,
@@ -78,8 +111,7 @@ def catalog(request):
     if brand_filter:
         products = products.filter(brand__iexact=brand_filter)
     if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) | Q(article__icontains=search_query))
+        products = products.filter(_search_q(search_query))
     if price_min:
         try:
             products = products.filter(price__gte=float(price_min.replace(',', '.')))
@@ -95,12 +127,23 @@ def catalog(request):
     if sale_only:
         products = products.exclude(old_price__isnull=True)
 
+    # Аннотация «есть фото» — всегда первичный ключ сортировки.
+    products = products.annotate(
+        _hi=Case(
+            When(image_url='', then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    )
     if sort == 'price_asc':
-        products = products.order_by('price')
+        products = products.order_by('_hi', 'price')
     elif sort == 'price_desc':
-        products = products.order_by('-price')
+        products = products.order_by('_hi', '-price')
     elif sort == 'name':
-        products = products.order_by('name')
+        products = products.order_by('_hi', 'name')
+    else:
+        # «По умолчанию» — сначала с фото, потом случайно.
+        products = products.order_by('_hi', '?')
 
     brands = Product.objects.all()
     if active_category:
@@ -144,7 +187,9 @@ def catalog(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    related = Product.objects.filter(category=product.category).exclude(pk=pk)[:4]
+    related = list(_has_image_first(
+        Product.objects.filter(category=product.category).exclude(pk=pk)
+    )[:4])
     return render(request, 'shop/product_detail.html', {
         'product': product,
         'images': product.image_list(),
@@ -155,9 +200,9 @@ def product_detail(request, pk):
 def search(request):
     q = request.GET.get('q', '').strip()
     if q:
-        products = Product.objects.filter(
-            Q(name__icontains=q) | Q(article__icontains=q)
-        )[:40]
+        products = list(_has_image_first(
+            Product.objects.filter(_search_q(q))
+        )[:40])
     else:
         products = []
     return render(request, 'shop/search.html', {'products': products, 'query': q})
@@ -168,8 +213,8 @@ def search_suggest(request):
     q = request.GET.get('q', '').strip()
     results = []
     if len(q) >= 2:
-        products = Product.objects.filter(
-            Q(name__icontains=q) | Q(article__icontains=q)
+        products = _has_image_first(
+            Product.objects.filter(_search_q(q))
         )[:8]
         for p in products:
             results.append({
