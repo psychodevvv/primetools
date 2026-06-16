@@ -32,15 +32,13 @@ def _search_q(query):
 
 
 def _search_apply(base_qs, query):
-    """Умный поиск.
+    """Умный поиск с поддержкой кириллицы (SQLite icontains её не lower'ит).
 
     1) Если запрос «похож на артикул» (есть цифры, нет пробелов) и
        находится товар с ТОЧНО таким article — возвращаем только его.
-       Так '20610' даёт ровно один товар, не цепляя `AVE206100` или
-       название с «312320610423».
-    2) Иначе (или если точного совпадения нет) — обычный широкий
-       поиск по name+article.
+    2) Иначе — широкий поиск по name+article через lower-приведение.
     """
+    from django.db.models.functions import Lower
     q = (query or '').strip()
     if not q:
         return base_qs.none()
@@ -48,7 +46,10 @@ def _search_apply(base_qs, query):
         exact = base_qs.filter(article__iexact=q)
         if exact.exists():
             return exact
-    return base_qs.filter(Q(name__icontains=q) | Q(article__icontains=q))
+    ql = q.lower()
+    return (base_qs
+            .annotate(_lname=Lower('name'), _lart=Lower('article'))
+            .filter(Q(_lname__contains=ql) | Q(_lart__contains=ql)))
 
 
 def index(request):
@@ -217,23 +218,29 @@ def search(request):
 
 
 def search_suggest(request):
-    """JSON-подсказки для живого поиска в шапке (по названию и артикулу)."""
+    """Умный поиск как у ЗУБРа: возвращает И категории, И товары."""
+    from django.db.models import Count
+    from django.db.models.functions import Lower
     q = request.GET.get('q', '').strip()
-    results = []
+    cats, prods = [], []
     if len(q) >= 2:
-        products = _has_image_first(
+        # SQLite не умеет icontains для кириллицы — нормализуем сами.
+        ql = q.lower()
+        cat_qs = (Category.objects
+                  .annotate(_lname=Lower('name'))
+                  .filter(_lname__contains=ql)
+                  .annotate(cnt=Count('products'))
+                  .order_by('-cnt', 'name')[:12])
+        for c in cat_qs:
+            cats.append({'name': c.name, 'slug': c.slug, 'count': c.cnt})
+        prod_qs = _has_image_first(
             _search_apply(Product.objects.all(), q)
-        )[:8]
-        for p in products:
-            results.append({
-                'id': p.pk,
-                'name': p.name,
-                'article': p.article,
-                'price': '{:,}'.format(int(p.price)).replace(',', ' '),
-                'image_url': p.image_url,
-                'in_stock': p.in_stock,
+        )[:16]
+        for p in prod_qs:
+            prods.append({
+                'id': p.pk, 'name': p.name, 'article': p.article,
             })
-    return JsonResponse({'results': results})
+    return JsonResponse({'categories': cats, 'products': prods})
 
 
 @require_POST

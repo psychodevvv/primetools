@@ -9,28 +9,35 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #ea6a1a;
-      --accent-light: #f5853a;
-      --accent-dark: #cf5a10;
-      --accent-soft: #fff2e7;
-      --accent-glow: rgba(234,106,26,.16);
-      --bg: #f4f5f7;
-      --surface: #ffffff;
-      --surface-2: #eef0f3;
-      --surface-3: #e4e7ec;
-      --border: #e4e7eb;
-      --border-strong: #d2d7de;
-      --heading: #181b22;
-      --text: #353b45;
-      --text-muted: #6b7280;
-      --text-dim: #9aa1ac;
-      --danger: #e5484d;
-      --success: #2fa84f;
-      --info: #2f6fed;
-      --radius: 14px;
-      --radius-sm: 9px;
-      --shadow: 0 1px 2px rgba(20,24,31,.05), 0 5px 20px rgba(20,24,31,.05);
-      --shadow-lg: 0 10px 44px rgba(20,24,31,.13);
+      /* ────── ЦВЕТА В СТИЛЕ ЗУБРА: тёмно-синий + красный ────── */
+      --accent: #d6293a;          /* фирменный красный (кнопки, акценты) */
+      --accent-light: #e64253;
+      --accent-dark: #b81f2e;
+      --accent-soft: #fde6e8;
+      --accent-glow: rgba(214,41,58,.18);
+
+      --navy: #0a1430;             /* основной тёмно-синий шапки/сайдбара */
+      --navy-2: #142150;            /* чуть светлее, для блоков */
+      --navy-3: #1d2c63;            /* подсветка/градиент */
+
+      --bg: #f1f3f7;                /* спокойный светло-серый под контент */
+      --surface: #ffffff;           /* белые карточки */
+      --surface-2: #eef1f5;
+      --surface-3: #e3e7ee;
+      --border: #e1e4ea;
+      --border-strong: #c8cdd6;
+
+      --heading: #0a1430;           /* тёмно-синий заголовок на светлом */
+      --text: #2a334d;
+      --text-muted: #5b6680;
+      --text-dim: #99a2b3;
+      --danger: #d6293a;
+      --success: #1d8a40;
+      --info: #1d4ed8;
+      --radius: 6px;                /* у ЗУБРА скругления маленькие */
+      --radius-sm: 4px;
+      --shadow: 0 1px 2px rgba(10,20,48,.06), 0 4px 14px rgba(10,20,48,.06);
+      --shadow-lg: 0 10px 30px rgba(10,20,48,.18);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -63,10 +70,10 @@
 
     /* ─── HEADER ─── */
     .site-header {
-      background: var(--surface);
+      background:
+        linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
       position: sticky; top: 0; z-index: 1000;
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 1px 12px rgba(20,24,31,.04);
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
     }
     .header-inner {
       max-width: 1400px; margin: 0 auto; padding: 0 32px;
@@ -74,35 +81,34 @@
     }
     .logo {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 30px; letter-spacing: 2.5px;
-      color: var(--heading); white-space: nowrap; margin-right: 42px;
+      font-size: 28px; letter-spacing: 2.5px;
+      color: #fff; white-space: nowrap; margin-right: 32px;
     }
     .logo span { color: var(--accent); }
     .header-nav { display: flex; align-items: center; }
     .header-nav a {
-      color: var(--text-muted); font-size: 13px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      padding: 9px 16px; border-radius: var(--radius-sm);
+      color: rgba(255,255,255,.85); font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .8px;
+      padding: 9px 14px; border-radius: var(--radius-sm);
       transition: color .15s, background .15s; cursor: pointer;
     }
-    .header-nav a:hover { color: var(--accent); background: var(--accent-soft); }
+    .header-nav a:hover { color: #fff; background: rgba(255,255,255,.08); }
     .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .icon-btn {
-      background: var(--surface-2); border: none; cursor: pointer;
-      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-      color: var(--heading); border-radius: 50%; transition: all .15s;
+      background: rgba(255,255,255,.08); border: none; cursor: pointer;
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+      color: #fff; border-radius: var(--radius-sm); transition: all .15s;
     }
-    .icon-btn:hover { background: var(--accent-soft); color: var(--accent); }
+    .icon-btn:hover { background: var(--accent); color: #fff; }
     .icon-btn svg { width: 19px; height: 19px; }
     .cart-link {
-      display: flex; align-items: center; gap: 9px;
+      display: flex; align-items: center; gap: 8px;
       background: var(--accent); color: #fff;
-      padding: 11px 22px; border-radius: 30px;
-      font-size: 14px; font-weight: 700;
-      transition: background .15s, transform .1s;
+      padding: 10px 18px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 700;
+      transition: background .15s;
     }
     .cart-link:hover { background: var(--accent-dark); color: #fff; }
-    .cart-link:active { transform: scale(.97); }
     .cart-link svg { width: 17px; height: 17px; }
     .cart-badge {
       background: #fff; color: var(--accent);
@@ -111,12 +117,36 @@
       display: inline-flex; align-items: center; justify-content: center;
       padding: 0 5px;
     }
-    .auth-link { color: var(--text-muted); font-size: 13px; font-weight: 600; padding: 9px 13px; border-radius: var(--radius-sm); transition: all .15s; }
-    .auth-link:hover { color: var(--accent); background: var(--accent-soft); }
-    .auth-link.reg { border: 1px solid var(--border-strong); }
-    .auth-link.reg:hover { border-color: var(--accent); color: var(--accent); }
+    .auth-link { color: rgba(255,255,255,.85); font-size: 13px; font-weight: 600; padding: 9px 13px; border-radius: var(--radius-sm); transition: all .15s; }
+    .auth-link:hover { color: #fff; background: rgba(255,255,255,.10); }
+    .auth-link.reg { border: 1px solid rgba(255,255,255,.18); }
+    .auth-link.reg:hover { border-color: var(--accent); background: var(--accent); }
 
     /* ─── SEARCH ─── */
+    /* поиск ─ компактный в шапке */
+    .header-search {
+      flex: 1; max-width: 460px; margin: 0 18px;
+      position: relative;
+    }
+    .header-search form { display: flex; }
+    .header-search input {
+      flex: 1; min-width: 0; background: #fff; border: none;
+      color: var(--heading); padding: 9px 14px;
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      outline: none; border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+    .header-search input::placeholder { color: var(--text-dim); }
+    .header-search button {
+      background: var(--accent); border: none; width: 44px;
+      cursor: pointer; color: #fff;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .header-search button:hover { background: var(--accent-dark); }
+    .header-search button svg { width: 18px; height: 18px; }
+
+    /* старый «выезжающий» поиск — оставлен на случай мобильной модалки */
     .search-wrap {
       background: var(--surface); border-bottom: 1px solid var(--border); display: none;
       position: absolute; top: 100%; left: 0; right: 0; z-index: 1100;
@@ -134,43 +164,67 @@
       transition: border-color .15s;
     }
     .search-wrap input:focus { border-color: var(--accent); }
-    .search-wrap input::placeholder { color: var(--text-dim); }
     .search-wrap button {
       background: var(--accent); border: none; padding: 12px 26px;
       color: white; cursor: pointer; font-weight: 700; font-size: 13px;
-      font-family: 'Inter', sans-serif; transition: background .15s;
+      transition: background .15s;
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
       text-transform: uppercase; letter-spacing: .5px;
     }
     .search-wrap button:hover { background: var(--accent-dark); }
 
-    /* live-search dropdown */
+    /* ─── УМНЫЙ ПОИСК: dropdown в две колонки (как у ЗУБРа) ─── */
     .search-results {
-      position: absolute; top: calc(100% + 6px); left: 0;
-      width: 100%; min-width: 340px;
+      position: absolute; top: calc(100% + 4px); left: 0;
+      width: 720px; max-width: 92vw;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow-lg);
-      max-height: 460px; overflow-y: auto; z-index: 1100; display: none;
+      border-radius: var(--radius);
+      box-shadow: 0 18px 40px rgba(10,20,48,.18);
+      max-height: 70vh; overflow: hidden; z-index: 1100; display: none;
     }
-    .search-box--right .search-results { left: auto; right: 0; }
-    .search-results.open { display: block; }
-    .sr-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--border); }
-    .sr-item:hover { background: var(--surface-2); }
-    .sr-thumb {
-      width: 48px; height: 48px; border-radius: 8px; background: var(--surface-2);
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    .search-results.open { display: grid; grid-template-columns: 280px 1fr; }
+    .sr-col {
+      display: flex; flex-direction: column;
+      max-height: 70vh; overflow-y: auto;
     }
-    .sr-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .sr-info { flex: 1; min-width: 0; }
-    .sr-name {
-      font-size: 13px; color: var(--heading); font-weight: 500; line-height: 1.35;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    .sr-col--cats {
+      background: var(--surface-2); border-right: 1px solid var(--border);
     }
-    .sr-art { font-size: 11px; color: var(--text-dim); font-family: monospace; margin-top: 2px; }
-    .sr-price { font-size: 14px; font-weight: 800; color: var(--heading); white-space: nowrap; }
-    .sr-all { display: block; text-align: center; padding: 13px; font-size: 13px; font-weight: 700; color: var(--accent); }
-    .sr-all:hover { background: var(--accent-soft); }
-    .sr-empty { padding: 20px 16px; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .sr-col__head {
+      padding: 12px 16px; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .6px;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .sr-cat {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 16px; color: var(--heading); font-size: 13px;
+      line-height: 1.4; border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+    .sr-cat:hover { background: var(--surface); color: var(--accent); }
+    .sr-cat__name { flex: 1; }
+    .sr-cat__count { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .sr-cat b, .sr-prod b { color: var(--accent); font-weight: 700; }
+    .sr-prod {
+      display: block; padding: 9px 18px; font-size: 13.5px;
+      color: var(--heading); line-height: 1.4;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+    .sr-prod:hover { background: var(--surface-2); }
+    .sr-all {
+      display: block; text-align: right; padding: 12px 18px;
+      font-size: 13px; font-weight: 600; color: var(--accent);
+      border-top: 1px solid var(--border); background: var(--surface);
+    }
+    .sr-all:hover { text-decoration: underline; }
+    .sr-empty {
+      grid-column: 1 / -1;
+      padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: 14px;
+    }
+    @media (max-width: 720px) {
+      .search-results.open { grid-template-columns: 1fr; }
+      .sr-col--cats { display: none; }
+    }
 
     /* ─── CATEGORY BAR ─── */
     .cat-bar-wrap { background: var(--surface); border-bottom: 1px solid var(--border); position: relative; }
@@ -249,10 +303,12 @@
       border-radius: var(--radius-sm); white-space: nowrap;
     }
     .btn svg { width: 17px; height: 17px; }
-    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 6px 18px var(--accent-glow); }
-    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); color: white; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); color: white; }
     .btn-outline { background: var(--surface); border-color: var(--border-strong); color: var(--heading); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-dark { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .btn-dark:hover { background: var(--navy-2); color: #fff; }
     .btn-ghost { background: var(--surface-2); border-color: var(--surface-2); color: var(--heading); }
     .btn-ghost:hover { background: var(--surface-3); }
     .btn-danger { background: var(--danger); border-color: var(--danger); color: white; }
@@ -762,27 +818,34 @@
 <header class="site-header">
   <div class="header-inner">
     <a href="/" class="logo">Prime<span>Tools</span></a>
-    <button type="button" class="cat-menu-btn" id="catMenuBtn" onclick="toggleCatMenu()" aria-expanded="false" aria-controls="catMegamenu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-      Каталог
-      <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-    </button>
     <nav class="header-nav">
-      <a href="/catalog/">Все товары</a>
-      <a href="/#about">О нас</a>
-      <a href="/#delivery">Доставка</a>
-      <a href="/#contacts">Контакты</a>
+      <a href="/#about">Компания</a>
+      <a href="/#delivery">Поддержка</a>
+      <a href="/videos/">Видеообзоры</a>
     </nav>
+    <div class="header-search search-box">
+      <form action="/search/" method="get" autocomplete="off">
+        <input type="text" name="q" id="searchInput"
+               placeholder="Умный поиск" value="{{ request.GET.q }}">
+        <button type="submit" aria-label="Найти">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.7-4.7"/></svg>
+        </button>
+      </form>
+      <div class="search-results" id="searchResults"></div>
+      <div class="sh-history" id="searchHistory" style="display:none;">
+        <div class="sh-history__head">
+          <span>Недавние запросы</span>
+          <button type="button" class="sh-history__clear" onclick="shClear()">Очистить</button>
+        </div>
+        <div class="sh-history__list" id="searchHistoryList"></div>
+      </div>
+    </div>
     <div class="header-right">
-      <button class="icon-btn" onclick="toggleSearch()" aria-label="Поиск">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.7-4.7"/></svg>
-      </button>
       {% if request.session.customer_id %}
         <a href="/account/profile/" class="auth-link">{{ request.session.customer_name }}</a>
         <a href="/account/logout/" class="auth-link">Выйти</a>
       {% else %}
         <a href="/account/login/" class="auth-link">Войти</a>
-        <a href="/account/register/" class="auth-link reg">Регистрация</a>
       {% endif %}
       <a href="/cart/" class="cart-link" aria-label="Корзина">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 9.4a2 2 0 0 1-2 1.6H8.2a2 2 0 0 1-2-1.6L5 7Z"/><path d="M8.5 7V5.5a3.5 3.5 0 0 1 7 0V7"/></svg>
@@ -792,24 +855,6 @@
       <button class="burger" id="burger" onclick="toggleDrawer()" aria-label="Меню">
         <span></span><span></span><span></span>
       </button>
-    </div>
-  </div>
-  <div class="search-wrap" id="searchWrap">
-    <div class="search-wrap-inner">
-      <div class="search-box">
-        <form action="/search/" method="get" autocomplete="off">
-          <input type="text" name="q" placeholder="Поиск по названию или артикулу..." value="{{ request.GET.q }}" id="searchInput">
-          <button type="submit">Найти</button>
-        </form>
-        <div class="search-results" id="searchResults"></div>
-        <div class="sh-history" id="searchHistory" style="display:none;">
-          <div class="sh-history__head">
-            <span>Недавние запросы</span>
-            <button type="button" class="sh-history__clear" onclick="shClear()">Очистить</button>
-          </div>
-          <div class="sh-history__list" id="searchHistoryList"></div>
-        </div>
-      </div>
     </div>
   </div>
 </header>
@@ -1018,15 +1063,10 @@
 
 <script>
 function toggleSearch() {
-  // На мобильных открываем модалку — там больше места и история запросов на весь экран.
+  // Десктоп — фокус на инлайн-поле; мобильный — открываем полноэкранную модалку.
   if (window.innerWidth <= 768) { openSearchModal(); return; }
-  var wrap = document.getElementById('searchWrap');
-  wrap.classList.toggle('open');
-  if (wrap.classList.contains('open')) {
-    setTimeout(function(){ document.getElementById('searchInput').focus(); }, 60);
-    shRenderInto(document.getElementById('searchHistory'),
-                 document.getElementById('searchHistoryList'));
-  }
+  var inp = document.getElementById('searchInput');
+  if (inp) { inp.focus(); inp.select(); }
 }
 
 /* ─── история поиска (localStorage) ─── */
@@ -1110,22 +1150,48 @@ function setupLiveSearch(box) {
   if (!input || !results) return;
   var timer;
 
-  function render(q, list) {
-    if (!list.length) {
+  // Подсветить вхождения слова жирным
+  function srHighlight(text, q) {
+    var safe = srEsc(text || '');
+    if (!q) return safe;
+    var qSafe = srEsc(q);
+    var re = new RegExp('(' + qSafe.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'ig');
+    return safe.replace(re, '<b>$1</b>');
+  }
+
+  function render(q, data) {
+    var cats = (data && data.categories) || [];
+    var prods = (data && data.products) || [];
+    if (!cats.length && !prods.length) {
       results.innerHTML = '<div class="sr-empty">Ничего не найдено</div>';
       results.classList.add('open');
       return;
     }
     var html = '';
-    list.forEach(function(p) {
-      html += '<a class="sr-item" href="/product/' + p.id + '/">'
-        + '<div class="sr-thumb">'
-        + (p.image_url ? '<img src="' + srEsc(p.image_url) + '" alt="">' : SR_NOIMG)
-        + '</div><div class="sr-info"><div class="sr-name">' + srEsc(p.name) + '</div>'
-        + (p.article ? '<div class="sr-art">Арт: ' + srEsc(p.article) + '</div>' : '')
-        + '</div><div class="sr-price">' + srEsc(p.price) + ' тг</div></a>';
+    // ── левая колонка: категории ──
+    html += '<div class="sr-col sr-col--cats">';
+    html += '<div class="sr-col__head">Категории:</div>';
+    if (cats.length) {
+      cats.forEach(function(c) {
+        html += '<a class="sr-cat" href="/catalog/?cat=' + encodeURIComponent(c.slug) + '">'
+              + '<span class="sr-cat__name">' + srHighlight(c.name, q) + '</span>'
+              + '<span class="sr-cat__count">' + c.count + ' шт</span>'
+              + '</a>';
+      });
+    } else {
+      html += '<div class="sr-cat" style="color:var(--text-muted);font-size:12px;">Нет совпадений</div>';
+    }
+    html += '</div>';
+    // ── правая колонка: продукция ──
+    html += '<div class="sr-col">';
+    html += '<div class="sr-col__head">Продукция:</div>';
+    prods.forEach(function(p) {
+      html += '<a class="sr-prod" href="/product/' + p.id + '/">'
+            + srHighlight(p.name, q)
+            + '</a>';
     });
-    html += '<a class="sr-all" href="/search/?q=' + encodeURIComponent(q) + '">Все результаты поиска →</a>';
+    html += '<a class="sr-all" href="/search/?q=' + encodeURIComponent(q) + '">Все результаты →</a>';
+    html += '</div>';
     results.innerHTML = html;
     results.classList.add('open');
   }
@@ -1148,7 +1214,7 @@ function setupLiveSearch(box) {
     timer = setTimeout(function() {
       fetch('/search/suggest/?q=' + encodeURIComponent(q))
         .then(function(r){ return r.json(); })
-        .then(function(d){ render(q, d.results || []); })
+        .then(function(d){ render(q, d); })
         .catch(function(){});
     }, 220);
   });
