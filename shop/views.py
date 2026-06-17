@@ -150,8 +150,10 @@ def catalog(request):
         products = products.order_by('_hi', '-price')
     elif sort == 'name':
         products = products.order_by('_hi', 'name')
+    elif sort == 'new':
+        products = products.order_by('_hi', '-created_at')
     else:
-        # «По умолчанию» — сначала с фото, потом случайно.
+        # «Популярные» — сначала с фото, потом случайно.
         products = products.order_by('_hi', '?')
 
     brands = Product.objects.all()

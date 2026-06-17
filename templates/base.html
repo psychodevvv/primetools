@@ -42,7 +42,10 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      background: var(--bg);
+      background:
+        radial-gradient(1200px 600px at 70% -10%, rgba(29,44,99,.55), transparent 60%),
+        linear-gradient(180deg, #0a1430 0%, #0d1840 100%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: 'Inter', sans-serif;
       font-size: 15px;
@@ -52,6 +55,45 @@
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
+    /* «Серая обёртка» — весь контент сайта лежит в светлом блоке поверх navy */
+    .site-shell {
+      max-width: 1400px; margin: 18px auto;
+      background: #f1f3f7;
+      border-radius: 12px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      overflow: hidden;
+    }
+    @media (max-width: 1024px) {
+      .site-shell { margin: 0; border-radius: 0; }
+    }
+
+    /* ─── SKELETON LOADER ─── */
+    @keyframes skel-shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skel, .skel-line, .skel-block {
+      display: block;
+      background:
+        linear-gradient(90deg, #e6e9ef 0%, #f1f3f7 50%, #e6e9ef 100%);
+      background-size: 200% 100%;
+      animation: skel-shimmer 1.4s linear infinite;
+      border-radius: 6px;
+    }
+    .skel-line { height: 14px; margin-bottom: 8px; }
+    .skel-block { height: 100%; }
+    .skel-card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0; overflow: hidden;
+    }
+    .skel-card__img { aspect-ratio: 4/3; background:
+      linear-gradient(90deg, #e6e9ef 0%, #f1f3f7 50%, #e6e9ef 100%);
+      background-size: 200% 100%;
+      animation: skel-shimmer 1.4s linear infinite; }
+    .skel-card__body { padding: 14px; }
+    .skel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    /* плавное скрытие */
+    .skel-fade-out { opacity: 0; transition: opacity .25s ease; pointer-events: none; }
     a { color: inherit; text-decoration: none; transition: color .15s; }
     h1,h2,h3,h4 { font-weight: 800; line-height: 1.2; color: var(--heading); }
     img { max-width: 100%; height: auto; display: block; }
@@ -996,6 +1038,7 @@
   </div>
 </div>
 
+<div class="site-shell">
 {% block cat_nav %}
 <div class="cat-bar-wrap">
   <button class="cat-scroll cat-scroll--left hidden" id="catLeft" onclick="scrollCats(-1)" aria-label="Назад">
@@ -1023,6 +1066,7 @@
 {% endif %}
 
 <main>{% block content %}{% endblock %}</main>
+</div>
 
 <footer class="site-footer">
   <div class="footer-grid">

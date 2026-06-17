@@ -101,9 +101,34 @@
       <h1 style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;color:var(--heading);line-height:1;">
         {% if active_category %}{{ active_category.name }}{% else %}Каталог{% endif %}
       </h1>
-      <div style="font-size:13px;color:var(--text-muted);margin:4px 0 24px;">Найдено товаров: {{ total_count }}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin:4px 0 18px;">Найдено товаров: {{ total_count }}</div>
 
-      <div class="products-grid">
+      <!-- ── Верхняя панель сортировки + быстрые фильтры ── -->
+      <div class="catalog-topbar">
+        <form method="get" class="catalog-topbar__sort">
+          {% if active_category %}<input type="hidden" name="cat" value="{{ active_category.slug }}">{% endif %}
+          {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+          {% if brand_filter %}<input type="hidden" name="brand" value="{{ brand_filter }}">{% endif %}
+          {% if price_min %}<input type="hidden" name="price_min" value="{{ price_min }}">{% endif %}
+          {% if price_max %}<input type="hidden" name="price_max" value="{{ price_max }}">{% endif %}
+          {% if in_stock_only %}<input type="hidden" name="in_stock" value="1">{% endif %}
+          {% if sale_only %}<input type="hidden" name="sale" value="1">{% endif %}
+          <label>Сортировка:</label>
+          <select name="sort" onchange="this.form.submit()">
+            <option value="" {% if not sort %}selected{% endif %}>популярные</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>сначала дешевле</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>сначала дороже</option>
+            <option value="name" {% if sort == 'name' %}selected{% endif %}>по названию А-Я</option>
+            <option value="new" {% if sort == 'new' %}selected{% endif %}>новинки</option>
+          </select>
+        </form>
+        <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}in_stock=1"
+           class="catalog-topbar__chip {% if in_stock_only %}active{% endif %}">только в наличии</a>
+        <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}sale=1"
+           class="catalog-topbar__chip {% if sale_only %}active{% endif %}">распродажа</a>
+      </div>
+
+      <div class="products-grid" id="productsGrid">
         {% for product in products %}
           {% include 'shop/_product_card.html' with p=product %}
         {% empty %}
@@ -163,6 +188,34 @@
   .page-btn:hover { border-color:var(--accent); color:var(--accent); }
   .page-btn--active { background:var(--accent); border-color:var(--accent); color:#fff; }
   .catalog-filter-toggle { display:none; }
+
+  /* верхняя панель сортировки/чипов над сеткой товаров */
+  .catalog-topbar {
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .catalog-topbar__sort { display:flex; align-items:center; gap:8px; margin:0; }
+  .catalog-topbar__sort label { font-size:13px; color:var(--text-muted); font-weight:600; }
+  .catalog-topbar__sort select {
+    border:1px solid var(--border-strong); background:var(--surface);
+    border-radius:var(--radius-sm); padding:7px 28px 7px 10px;
+    font-family:inherit; font-size:13.5px; color:var(--heading);
+    cursor:pointer; outline:none;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23556' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat; background-position:right 9px center;
+  }
+  .catalog-topbar__sort select:hover { border-color:var(--accent); }
+  .catalog-topbar__chip {
+    padding:7px 14px; border-radius:30px;
+    background:var(--surface-2); color:var(--text);
+    font-size:12.5px; font-weight:600;
+    border:1px solid var(--border);
+  }
+  .catalog-topbar__chip:hover { border-color:var(--accent); color:var(--accent); }
+  .catalog-topbar__chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   @media(max-width:768px){
     .catalog-layout{ flex-direction:column; }
     .catalog-filter-toggle{ display:flex; width:100%; justify-content:center; }
@@ -182,6 +235,33 @@ function toggleFilters() {
   var open = aside.classList.toggle('show');
   if (btn) btn.textContent = open ? 'Скрыть фильтры' : 'Фильтры и категории';
 }
+
+/* ── Плавный переход между страницами пагинации:
+       сразу скроллим к верху сетки, показываем скелетон,
+       и только потом отдаём браузеру переход на новую страницу ── */
+(function() {
+  var grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  document.querySelectorAll('a.page-btn').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      // покажем скелетоны вместо реальных карточек
+      var n = grid.children.length || 12;
+      var skel = '';
+      for (var i = 0; i < n; i++) {
+        skel += '<div class="skel-card"><div class="skel-card__img"></div>' +
+                '<div class="skel-card__body">' +
+                '<div class="skel-line" style="width:60%;"></div>' +
+                '<div class="skel-line" style="width:90%;"></div>' +
+                '<div class="skel-line" style="width:40%;"></div>' +
+                '</div></div>';
+      }
+      grid.innerHTML = skel;
+      // плавно поднимаем страницу к началу сетки
+      var top = grid.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+  });
+})();
 </script>
 {% endblock %}
 {% endblock %}
