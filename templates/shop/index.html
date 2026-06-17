@@ -3,6 +3,155 @@
 {% block title %}PrimeTools — Профессиональные инструменты в Казахстане{% endblock %}
 {% block extra_css %}
 <style>
+  /* ── ДВУХКОЛОНОЧНЫЙ ВЕРХ: КАТАЛОГ + ПРОМО-СЛАЙДЕР ── */
+  .zh-home {
+    max-width:1400px; margin:14px auto 0; padding:0 16px;
+    display:grid; grid-template-columns:280px 1fr; gap:0;
+    align-items:stretch;
+  }
+  .zh-cats {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    border-radius:6px 0 0 6px;
+    display:flex; flex-direction:column;
+  }
+  .zh-cats__head {
+    background: var(--accent);
+    color:#fff; font-weight:700; font-size:13px;
+    letter-spacing:1.2px; padding:11px 18px;
+    border-radius:6px 0 0 0;
+  }
+  .zh-cats__list { padding:6px 0; flex:1; }
+  .zh-cat {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 16px 11px 18px;
+    color:rgba(255,255,255,.92); font-size:13.5px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    transition:background .15s, color .15s;
+  }
+  .zh-cat:hover { background:rgba(255,255,255,.06); color:#fff; }
+  .zh-cat__name { flex:1; line-height:1.3; }
+  .zh-cat__icon {
+    flex-shrink:0; width:32px; height:32px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.08); color:#cfd6e6;
+  }
+  .zh-cat__icon svg { width:20px; height:20px; }
+  /* раскрашиваем иконки циклически — по примеру скриншота */
+  .zh-cat:nth-child(7n+1) .zh-cat__icon { color:#dd6b1f; }
+  .zh-cat:nth-child(7n+2) .zh-cat__icon { color:#a3a3a3; }
+  .zh-cat:nth-child(7n+3) .zh-cat__icon { color:#8b5a2b; }
+  .zh-cat:nth-child(7n+4) .zh-cat__icon { color:#3a9fd9; }
+  .zh-cat:nth-child(7n+5) .zh-cat__icon { color:#7c3aed; }
+  .zh-cat:nth-child(7n+6) .zh-cat__icon { color:#16a34a; }
+  .zh-cat:nth-child(7n+7) .zh-cat__icon { color:#fbbf24; }
+  .zh-cats__all {
+    display:block; text-align:center; padding:11px 14px;
+    background:rgba(255,255,255,.06); color:#fff;
+    font-size:12px; font-weight:700; letter-spacing:.5px;
+    text-transform:uppercase;
+    border-radius:0 0 0 6px;
+  }
+  .zh-cats__all:hover { background:rgba(255,255,255,.10); }
+
+  .zh-promo { display:flex; flex-direction:column; }
+  .zh-promo__head {
+    background:#4a525e; color:#fff;
+    font-size:13px; letter-spacing:1.2px; font-weight:700;
+    padding:11px 18px;
+    border-radius:0 6px 0 0;
+  }
+  .zh-slider {
+    position:relative; flex:1;
+    background:#fff;
+    border-radius:0 0 6px 0;
+    overflow:hidden;
+  }
+  .zh-slides { position:relative; height:100%; min-height:420px; }
+  .zh-slide {
+    position:absolute; inset:0;
+    display:flex; align-items:center; gap:24px;
+    padding:38px 44px;
+    opacity:0; transform:scale(1.01);
+    transition:opacity .5s ease, transform .8s ease;
+    pointer-events:none;
+  }
+  .zh-slide.active { opacity:1; transform:scale(1); pointer-events:auto; }
+  .zh-slide--1 { background:linear-gradient(135deg, #cc1f1f 0%, #ea4d2c 70%, #f97316 100%); color:#fff; }
+  .zh-slide--2 { background:linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, #2a3a85 100%); color:#fff; }
+  .zh-slide--3 { background:linear-gradient(135deg, #0d9488 0%, #15803d 60%, #65a30d 100%); color:#fff; }
+  .zh-slide__body { flex:1; max-width:540px; }
+  .zh-slide__eye {
+    display:inline-flex; align-items:center;
+    background:rgba(255,255,255,.18); color:#fff;
+    font-size:11px; font-weight:700; letter-spacing:1.5px;
+    text-transform:uppercase; padding:5px 12px; border-radius:30px;
+    margin-bottom:14px;
+  }
+  .zh-slide__title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(28px, 3.6vw, 44px);
+    letter-spacing:1.2px; line-height:1.05; color:#fff;
+    margin:0 0 12px;
+  }
+  .zh-slide__title em { color:#fbbf24; font-style:normal; }
+  .zh-slide__text {
+    font-size:15px; line-height:1.55; color:rgba(255,255,255,.92);
+    margin:0 0 22px;
+  }
+  .zh-slide__btn {
+    display:inline-flex; align-items:center; gap:8px;
+    background:#fff; color:#0a1430;
+    padding:11px 22px; border-radius:4px;
+    font-size:13px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.6px;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .zh-slide__btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.25); }
+  .zh-slide__art {
+    flex-shrink:0; width:200px; height:200px;
+    opacity:.85;
+  }
+  .zh-slide__art svg { width:100%; height:100%; }
+  .zh-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:38px; height:38px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.22); color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    transition:background .15s;
+  }
+  .zh-nav:hover { background:rgba(255,255,255,.36); }
+  .zh-nav--prev { left:14px; }
+  .zh-nav--next { right:14px; }
+  .zh-dots {
+    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+    display:flex; gap:7px;
+  }
+  .zh-dot {
+    width:8px; height:8px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.5); cursor:pointer;
+    transition:all .15s;
+  }
+  .zh-dot.active { background:#fff; width:22px; border-radius:4px; }
+
+  /* адаптив */
+  @media (max-width: 900px) {
+    .zh-home { grid-template-columns:1fr; padding:0 12px; }
+    .zh-cats { border-radius:6px 6px 0 0; }
+    .zh-cats__head { border-radius:6px 6px 0 0; }
+    .zh-cats__all { border-radius:0; }
+    .zh-promo__head { border-radius:0; }
+    .zh-slider { border-radius:0 0 6px 6px; }
+    .zh-slides { min-height:340px; }
+    .zh-slide { padding:24px 22px; }
+    .zh-slide__art { width:120px; height:120px; }
+  }
+  @media (max-width: 560px) {
+    .zh-slide__art { display:none; }
+    .zh-slides { min-height:280px; }
+    .zh-slide__btn { padding:9px 16px; font-size:12px; }
+  }
+
   /* ── СЛАЙДЕР ── */
   .promo-slider { position:relative; max-width:1400px; margin:24px auto 8px; padding:0 32px; }
   .ps-track {
@@ -453,55 +602,94 @@
 {% endblock %}
 {% block content %}
 
-<!-- ─── СЛАЙДЕР ─── -->
-<section class="promo-slider" id="promoSlider" aria-roledescription="carousel">
-  <div class="ps-track">
-    <div class="ps-slide ps-1 active" role="group" aria-label="Слайд 1 из 3">
-      <div class="ps-decor"></div>
-      <div class="ps-content">
-        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:#fff;"></span>РАСПРОДАЖА</div>
-        <h1 class="ps-title">СКИДКИ ДО <em>−35%</em></h1>
-        <p class="ps-text">Сотни товаров со скидкой — выбирайте инструмент сейчас, пока цены не вернулись.</p>
-        <a href="/catalog/?sale=1" class="ps-btn">Смотреть распродажу
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
-      </div>
+<!-- ─── ДВУХКОЛОНОЧНЫЙ ВЕРХ: КАТАЛОГ-САЙДБАР + СЛАЙДЕР-ПРОМО ─── -->
+<section class="zh-home">
+  <!-- Сайдбар каталога -->
+  <aside class="zh-cats">
+    <div class="zh-cats__head">КАТАЛОГ</div>
+    <div class="zh-cats__list">
+      {% for cat in featured_categories %}
+      <a href="/catalog/?cat={{ cat.slug }}" class="zh-cat">
+        <span class="zh-cat__name">{{ cat.name }}</span>
+        <span class="zh-cat__icon">
+          {# простая SVG-иконка, цвет берётся из nth-child #}
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            {% cycle '<rect x="6" y="13" width="14" height="6" rx="1"/><path d="M20 14h4l3 2-3 2h-4"/><path d="M9 19v3"/>' '<circle cx="16" cy="16" r="9"/><path d="M16 8v3M16 21v3M8 16h3M21 16h3M10 10l2 2M20 20l2 2M22 10l-2 2M12 20l-2 2"/>' '<path d="M6 22l8-8 4 4 8-8"/><path d="M22 10h4v4"/><path d="M6 26h20"/>' '<path d="M16 6v4M12 6h8"/><circle cx="16" cy="18" r="6"/><path d="M14 16v4M18 16v4"/>' '<rect x="8" y="10" width="16" height="14" rx="2"/><path d="M12 10V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' '<path d="M10 7h12l-2 18H12z"/><path d="M14 13h4"/>' '<path d="M6 20l6-12 4 8 4-4 6 10"/><circle cx="10" cy="9" r="2"/>' '<path d="M16 4l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>' '<path d="M16 6c-4 0-6 4-6 8s2 8 6 8 6-4 6-8-2-8-6-8z"/><path d="M16 22v4"/>' '<rect x="4" y="14" width="20" height="10" rx="2"/><circle cx="9" cy="24" r="3"/><circle cx="20" cy="24" r="3"/>' '<rect x="8" y="6" width="3" height="20" rx="1"/><rect x="14" y="6" width="3" height="20" rx="1"/><rect x="20" y="6" width="3" height="20" rx="1"/>' '<path d="M8 22l4-12 4 8 4-4 4 8"/><path d="M6 24h20"/>' %}
+          </svg>
+        </span>
+      </a>
+      {% endfor %}
     </div>
+    {% if featured_categories %}
+    <a href="/catalog/" class="zh-cats__all">Все категории →</a>
+    {% endif %}
+  </aside>
 
-    <div class="ps-slide ps-2" role="group" aria-label="Слайд 2 из 3">
-      <div class="ps-decor"></div>
-      <div class="ps-content">
-        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent);"></span>Каталог</div>
-        <h1 class="ps-title">{{ total_products }}+ ТОВАРОВ<br>В <em>ОДНОМ МЕСТЕ</em></h1>
-        <p class="ps-text">От ручного инструмента до сложного оборудования — всё с официальной гарантией.</p>
-        <a href="/catalog/" class="ps-btn" style="background:var(--accent);color:#fff;">Перейти в каталог
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+  <!-- Слайдер промо-баннеров -->
+  <div class="zh-promo">
+    <div class="zh-promo__head">ПРОМО</div>
+    <div class="zh-slider" id="zhSlider" aria-roledescription="carousel">
+      <div class="zh-slides" id="zhSlides">
+        <div class="zh-slide zh-slide--1">
+          <div class="zh-slide__body">
+            <div class="zh-slide__eye">Распродажа</div>
+            <h2 class="zh-slide__title">Скидки до <em>−35%</em> на инструмент</h2>
+            <p class="zh-slide__text">Цены ниже обычных — выбирайте сейчас, пока товары есть на складе.</p>
+            <a class="zh-slide__btn" href="/catalog/?sale=1">Смотреть</a>
+          </div>
+          <div class="zh-slide__art" aria-hidden="true">
+            <svg viewBox="0 0 200 200" fill="none">
+              <circle cx="100" cy="100" r="78" fill="rgba(255,255,255,.08)"/>
+              <path d="M50 130c8-30 30-60 70-72" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="60" cy="60" r="4" fill="#fff"/><circle cx="140" cy="60" r="4" fill="#fff"/>
+              <circle cx="140" cy="140" r="4" fill="#fff"/>
+            </svg>
+          </div>
+        </div>
+        <div class="zh-slide zh-slide--2">
+          <div class="zh-slide__body">
+            <div class="zh-slide__eye">Каталог</div>
+            <h2 class="zh-slide__title">{{ total_products }}+ позиций в одном месте</h2>
+            <p class="zh-slide__text">От ручного инструмента до сложного оборудования — с гарантией.</p>
+            <a class="zh-slide__btn" href="/catalog/">В каталог</a>
+          </div>
+          <div class="zh-slide__art" aria-hidden="true">
+            <svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round">
+              <rect x="40" y="56" width="44" height="44" rx="4"/>
+              <rect x="116" y="56" width="44" height="44" rx="4"/>
+              <rect x="40" y="116" width="44" height="44" rx="4"/>
+              <rect x="116" y="116" width="44" height="44" rx="4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="zh-slide zh-slide--3">
+          <div class="zh-slide__body">
+            <div class="zh-slide__eye">Доставка</div>
+            <h2 class="zh-slide__title">По всему Казахстану</h2>
+            <p class="zh-slide__text">Алматы, Астана, Шымкент и любой регион — быстро и удобно.</p>
+            <a class="zh-slide__btn" href="/#delivery">Подробнее</a>
+          </div>
+          <div class="zh-slide__art" aria-hidden="true">
+            <svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="20" y="80" width="100" height="60" rx="4"/>
+              <path d="M120 100h28l24 22v18h-52z"/>
+              <circle cx="60" cy="148" r="10"/><circle cx="148" cy="148" r="10"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <button class="zh-nav zh-nav--prev" onclick="zhSlide(-1)" aria-label="Назад">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <button class="zh-nav zh-nav--next" onclick="zhSlide(1)" aria-label="Вперёд">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+      <div class="zh-dots">
+        <button class="zh-dot active" data-i="0"></button>
+        <button class="zh-dot" data-i="1"></button>
+        <button class="zh-dot" data-i="2"></button>
       </div>
     </div>
-
-    <div class="ps-slide ps-3" role="group" aria-label="Слайд 3 из 3">
-      <div class="ps-decor"></div>
-      <div class="ps-content">
-        <div class="ps-eye"><span style="width:7px;height:7px;border-radius:50%;background:#fff;"></span>Доставка</div>
-        <h1 class="ps-title">ДОСТАВКА <em>ПО КАЗАХСТАНУ</em></h1>
-        <p class="ps-text">Алматы, Астана, Шымкент и любой другой город. Привозим быстро, к удобному времени.</p>
-        <a href="/#delivery" class="ps-btn" style="background:#fff;color:#0d9488;">Узнать подробнее
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
-      </div>
-    </div>
-  </div>
-  <button class="ps-nav ps-prev" onclick="psNav(-1)" aria-label="Назад">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
-  </button>
-  <button class="ps-nav ps-next" onclick="psNav(1)" aria-label="Вперёд">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
-  </button>
-  <div class="ps-dots" role="tablist">
-    <button class="ps-dot active" data-i="0" aria-label="Слайд 1"></button>
-    <button class="ps-dot" data-i="1" aria-label="Слайд 2"></button>
-    <button class="ps-dot" data-i="2" aria-label="Слайд 3"></button>
   </div>
 </section>
 
@@ -786,6 +974,31 @@
 
 {% block extra_js %}
 <script>
+/* ── Слайдер главной (zh-slider) ── */
+(function() {
+  var slides = document.querySelectorAll('.zh-slide');
+  var dots = document.querySelectorAll('.zh-dot');
+  if (!slides.length) return;
+  var zi = 0, ztimer;
+  function zhGo(i) {
+    zi = (i + slides.length) % slides.length;
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === zi); });
+    dots.forEach(function(d, k){ d.classList.toggle('active', k === zi); });
+  }
+  window.zhSlide = function(d) { zhGo(zi + d); zhRestart(); };
+  dots.forEach(function(d) {
+    d.addEventListener('click', function() { zhGo(+this.dataset.i); zhRestart(); });
+  });
+  function zhRestart() { clearInterval(ztimer); ztimer = setInterval(function(){ zhGo(zi + 1); }, 6500); }
+  zhRestart();
+  // пауза при наведении мышью
+  var wrap = document.getElementById('zhSlider');
+  if (wrap) {
+    wrap.addEventListener('mouseenter', function(){ clearInterval(ztimer); });
+    wrap.addEventListener('mouseleave', function(){ zhRestart(); });
+  }
+})();
+
 /* ── Слайдер ── */
 (function() {
   var slides = document.querySelectorAll('.ps-slide');
