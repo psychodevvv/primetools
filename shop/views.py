@@ -54,10 +54,14 @@ def _search_apply(base_qs, query):
 
 def index(request):
     from django.db.models import Count, Case, When, Value, IntegerField
-    # Топ-категории — случайные при каждом обновлении.
+    # Топ-категории — все верхнего уровня, с подгруппами для всплывающего
+    # подменю на ховер. Порядок — рандом при каждом обновлении.
+    from django.db.models import Prefetch
+    children_qs = Category.objects.order_by('order', 'name')
     featured_categories = list(
         Category.objects.filter(parent__isnull=True)
         .annotate(prod_count=Count('products'))
+        .prefetch_related(Prefetch('children', queryset=children_qs))
         .order_by('?')[:12]
     )
     total_products = Product.objects.count()
