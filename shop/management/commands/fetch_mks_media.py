@@ -16,6 +16,7 @@
     python manage.py fetch_mks_media --limit 50   # тест на 50 товарах
     python manage.py fetch_mks_media --workers 8  # параллельность
 """
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -24,6 +25,29 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from shop.models import Product
+
+
+_TAG_RE = re.compile(r'<[^>]+>')
+
+
+def _html_to_text(html):
+    """Превращает HTML-фрагмент в чистый текст: <li>/<p>/<br> → переносы."""
+    if not html:
+        return ''
+    s = str(html)
+    s = re.sub(r'<\s*li[^>]*>', '\n• ', s, flags=re.I)
+    s = re.sub(r'<\s*/\s*li\s*>', '', s, flags=re.I)
+    s = re.sub(r'<\s*br\s*/?>', '\n', s, flags=re.I)
+    s = re.sub(r'<\s*/\s*p\s*>', '\n', s, flags=re.I)
+    s = _TAG_RE.sub('', s)
+    s = (s.replace('&nbsp;', ' ').replace('&laquo;', '«')
+           .replace('&raquo;', '»').replace('&quot;', '"')
+           .replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+           .replace('&mdash;', '—').replace('&ndash;', '–'))
+    s = re.sub(r'[ \t]+', ' ', s)
+    s = re.sub(r'\n[ \t]+', '\n', s)
+    s = re.sub(r'\n{3,}', '\n\n', s)
+    return s.strip()
 
 BASE = 'https://mkskz.master.pro'
 PIC_BASE = f'{BASE}/dbpics'
@@ -102,10 +126,51 @@ def fetch_one(session, article):
         if video_url:
             break
 
+    # Описание: descript (короткое) + body (основное) + advantages + usage.
+    desc_parts = []
+    short = _html_to_text(p.get('descript'))
+    body = _html_to_text(p.get('body'))
+    adv = _html_to_text(p.get('advantages'))
+    usage = _html_to_text(p.get('usage'))
+    if short:
+        desc_parts.append(short)
+    if body and body != short:
+        desc_parts.append(body)
+    if adv:
+        desc_parts.append('Преимущества:\n' + adv)
+    if usage:
+        desc_parts.append('Применение:\n' + usage)
+    description = '\n\n'.join(desc_parts).strip()
+
+    # Характеристики: params — dict {id: {header, value, unit?}}.
+    params = p.get('params') or {}
+    char_lines = []
+    if isinstance(params, dict):
+        items = list(params.values())
+    elif isinstance(params, list):
+        items = params
+    else:
+        items = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        name = (it.get('header') or it.get('name') or '').strip()
+        value = it.get('value')
+        unit = (it.get('unit') or '').strip()
+        if not name or value in (None, '', '-'):
+            continue
+        line = f'{name}: {value}'
+        if unit:
+            line += f' {unit}'
+        char_lines.append(line)
+    characteristics = '\n'.join(char_lines).strip()
+
     return {
         'image_url': urls[0] if urls else '',
         'gallery': '\n'.join(urls[1:]) if len(urls) > 1 else '',
         'video_url': video_url,
+        'description': description,
+        'characteristics': characteristics,
     }
 
 
@@ -135,7 +200,10 @@ class Command(BaseCommand):
 
         qs = Product.objects.exclude(article='')
         if not opts['refresh']:
-            qs = qs.filter(Q(image_url='') | Q(image_url__isnull=True))
+            qs = qs.filter(
+                Q(image_url='') | Q(image_url__isnull=True) |
+                Q(characteristics='') | Q(characteristics__isnull=True)
+            )
         if opts['brand_contains']:
             qs = qs.filter(brand__icontains=opts['brand_contains'])
         if opts['limit']:
@@ -153,7 +221,8 @@ class Command(BaseCommand):
         for start in range(0, total, CHUNK):
             chunk = list(Product.objects.filter(
                 pk__in=pks[start:start + CHUNK]).only(
-                'pk', 'article', 'image_url', 'gallery', 'video_url'))
+                'pk', 'article', 'image_url', 'gallery', 'video_url',
+                'description', 'characteristics'))
             batch_updates = []
             with ThreadPoolExecutor(max_workers=opts['workers']) as pool:
                 futs = {pool.submit(fetch_one, s, p.article): p for p in chunk}
@@ -161,17 +230,29 @@ class Command(BaseCommand):
                     p = futs[f]
                     info = f.result()
                     done += 1
-                    if not info or not info['image_url']:
+                    if not info:
                         not_found += 1
                         continue
-                    p.image_url = info['image_url']
-                    p.gallery = info['gallery']
-                    if info['video_url']:
-                        p.video_url = info['video_url']
+                    touched = False
+                    if info.get('image_url'):
+                        p.image_url = info['image_url']; touched = True
+                    if info.get('gallery'):
+                        p.gallery = info['gallery']; touched = True
+                    if info.get('video_url'):
+                        p.video_url = info['video_url']; touched = True
+                    if info.get('description'):
+                        p.description = info['description'][:8000]; touched = True
+                    if info.get('characteristics'):
+                        p.characteristics = info['characteristics'][:6000]; touched = True
+                    if not touched:
+                        not_found += 1
+                        continue
                     batch_updates.append(p)
             if batch_updates:
                 Product.objects.bulk_update(
-                    batch_updates, ['image_url', 'gallery', 'video_url'],
+                    batch_updates,
+                    ['image_url', 'gallery', 'video_url',
+                     'description', 'characteristics'],
                     batch_size=300)
                 updated += len(batch_updates)
             self.stdout.write(

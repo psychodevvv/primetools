@@ -11,6 +11,8 @@ env/
 # Django
 db.sqlite3
 db.sqlite3.gz
+db.snapshot.sqlite3
+db.*.sqlite3
 *.gz
 /staticfiles/
 /media/
