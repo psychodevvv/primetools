@@ -1,12 +1,7 @@
-import time
-
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from .models import Customer
-from .sms import generate_code, send_code
-
-CODE_TTL = 600  # код действует 10 минут
 
 
 def _norm_phone(raw):
@@ -25,108 +20,69 @@ def _login_customer(request, customer):
     request.session['customer_phone'] = customer.phone
 
 
-def _send_verification(request, phone, mode, first_name='', last_name=''):
-    """Создаёт код, кладёт в сессию, отправляет. Возвращает (отправлено_sms, код)."""
-    code = generate_code()
-    request.session['verify'] = {
-        'phone': phone, 'code': code, 'mode': mode,
-        'first_name': first_name, 'last_name': last_name,
-        'expires': time.time() + CODE_TTL,
-    }
-    return send_code(phone, code), code
-
-
-def _flash_code(request, sent, code):
-    if sent:
-        messages.success(request, 'Код подтверждения отправлен на ваш номер.')
-    else:
-        messages.warning(request, f'Демо-режим (SMS не настроены). Ваш код: {code}')
-
-
-def _verify(request, expect_mode, template):
-    """Проверка введённого кода. Общая для входа и регистрации."""
-    data = request.session.get('verify')
-    code = (request.POST.get('code') or '').strip()
-    redirect_name = 'register' if expect_mode == 'register' else 'login'
-
-    if not data or data.get('mode') != expect_mode:
-        messages.error(request, 'Сессия истекла — начните заново.')
-        return redirect(redirect_name)
-    if time.time() > data.get('expires', 0):
-        request.session.pop('verify', None)
-        messages.error(request, 'Срок действия кода истёк — запросите новый.')
-        return redirect(redirect_name)
-    if code != data['code']:
-        messages.error(request, 'Неверный код. Попробуйте ещё раз.')
-        return render(request, template, {'stage': 'code', 'phone': data['phone']})
-
-    if expect_mode == 'register':
-        customer, _ = Customer.objects.get_or_create(
-            phone=data['phone'],
-            defaults={'first_name': data['first_name'], 'last_name': data['last_name']},
-        )
-    else:
-        customer = Customer.objects.filter(phone=data['phone']).first()
-        if customer is None:
-            messages.error(request, 'Аккаунт не найден.')
-            return redirect('register')
-
-    request.session.pop('verify', None)
-    _login_customer(request, customer)
-    messages.success(request, f'Добро пожаловать, {customer.first_name}!')
-    return redirect('index')
-
-
 def register(request):
     if request.session.get('customer_id'):
         return redirect('index')
 
-    stage, phone = 'phone', ''
+    ctx = {'phone': '', 'first_name': '', 'last_name': ''}
     if request.method == 'POST':
-        if 'code' in request.POST:
-            return _verify(request, 'register', 'accounts/register.html')
-
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         phone = _norm_phone(request.POST.get('phone', ''))
+        password = request.POST.get('password') or ''
+        password2 = request.POST.get('password2') or ''
+        ctx.update({'phone': phone, 'first_name': first_name,
+                    'last_name': last_name})
 
-        if not first_name or not phone:
-            messages.error(request, 'Укажите имя и корректный номер телефона.')
+        if not first_name:
+            messages.error(request, 'Укажите имя.')
+        elif not phone:
+            messages.error(request, 'Укажите корректный номер телефона.')
+        elif len(password) < 6:
+            messages.error(request, 'Пароль должен быть не короче 6 символов.')
+        elif password != password2:
+            messages.error(request, 'Пароли не совпадают.')
         elif Customer.objects.filter(phone=phone).exists():
             messages.error(request, 'Этот номер уже зарегистрирован — войдите.')
         else:
-            sent, code = _send_verification(request, phone, 'register',
-                                            first_name, last_name)
-            _flash_code(request, sent, code)
-            stage = 'code'
+            customer = Customer(first_name=first_name, last_name=last_name,
+                                phone=phone)
+            customer.set_password(password)
+            customer.save()
+            _login_customer(request, customer)
+            messages.success(request, f'Добро пожаловать, {customer.first_name}!')
+            return redirect('index')
 
-    return render(request, 'accounts/register.html', {'stage': stage, 'phone': phone})
+    return render(request, 'accounts/register.html', ctx)
 
 
 def login_view(request):
     if request.session.get('customer_id'):
         return redirect('index')
 
-    stage, phone = 'phone', ''
+    phone = ''
     if request.method == 'POST':
-        if 'code' in request.POST:
-            return _verify(request, 'login', 'accounts/login.html')
-
         phone = _norm_phone(request.POST.get('phone', ''))
-        if not phone:
-            messages.error(request, 'Укажите корректный номер телефона.')
-        elif not Customer.objects.filter(phone=phone).exists():
-            messages.error(request, 'Аккаунт с таким номером не найден — зарегистрируйтесь.')
-        else:
-            sent, code = _send_verification(request, phone, 'login')
-            _flash_code(request, sent, code)
-            stage = 'code'
+        password = request.POST.get('password') or ''
 
-    return render(request, 'accounts/login.html', {'stage': stage, 'phone': phone})
+        if not phone or not password:
+            messages.error(request, 'Введите номер и пароль.')
+        else:
+            customer = Customer.objects.filter(phone=phone).first()
+            if customer is None:
+                messages.error(request, 'Аккаунт с таким номером не найден — зарегистрируйтесь.')
+            elif not customer.check_password(password):
+                messages.error(request, 'Неверный пароль.')
+            else:
+                _login_customer(request, customer)
+                messages.success(request, f'Добро пожаловать, {customer.first_name}!')
+                return redirect('index')
+
+    return render(request, 'accounts/login.html', {'phone': phone})
 
 
 def logout_view(request):
-    for key in ('customer_id', 'customer_name', 'customer_phone', 'verify'):
+    for key in ('customer_id', 'customer_name', 'customer_phone'):
         request.session.pop(key, None)
     return redirect('index')
 

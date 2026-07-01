@@ -60,10 +60,13 @@ def index(request):
     children_qs = Category.objects.order_by('order', 'name')
     featured_categories = list(
         Category.objects.filter(parent__isnull=True)
-        .annotate(prod_count=Count('products'))
         .prefetch_related(Prefetch('children', queryset=children_qs))
         .order_by('?')[:12]
     )
+    # prod_count для top-level считаем по ВСЕМ потомкам, а не только direct.
+    for cat in featured_categories:
+        ids = cat.descendant_ids()
+        cat.prod_count = Product.objects.filter(category_id__in=ids).count()
     total_products = Product.objects.count()
     # Хиты продаж — случайные товары с фото и в наличии.
     hits = list(
@@ -75,18 +78,24 @@ def index(request):
         Product.objects.exclude(image_url='').exclude(old_price__isnull=True)
         .order_by('?')[:8]
     )
-    # На главной — ВСЕ видео-обзоры, в случайном порядке (бесконечный слайдер).
-    video_reviews = list(VideoReview.objects.filter(is_active=True).order_by('?'))
-    video_reviews_total = len(video_reviews)
-    # ВСЕ бренды с приоритетом тех, у кого есть лого — внутри группы перемешано.
-    top_brands = list(Brand.objects.filter(featured=True).annotate(
-        has_logo=Case(
-            When(logo__gt='', then=Value(0)),
-            When(logo_url__gt='', then=Value(0)),
-            default=Value(1),
-            output_field=IntegerField(),
-        )
-    ).order_by('has_logo', '?'))
+    # На главной — 4 случайных видео-обзора из админ-модели VideoReview.
+    video_reviews = list(
+        VideoReview.objects.filter(is_active=True).order_by('?')[:4])
+    video_reviews_total = VideoReview.objects.filter(is_active=True).count()
+
+    # Бренды на главной — только whitelist, в указанном порядке.
+    BRAND_WHITELIST = [
+        'Зубр', 'Bosch', 'DeWalt', 'Stayer', 'Kraftool', 'Milwaukee',
+        'Makita', 'Gardena', 'Startul', 'Tulex', 'Steher', 'Stanley', 'Metabo',
+    ]
+    brand_objs = {b.name.lower(): b for b in Brand.objects.all()}
+    top_brands = []
+    for nm in BRAND_WHITELIST:
+        b = brand_objs.get(nm.lower())
+        # Показываем ТОЛЬКО бренды с реальным лого — без него карточка
+        # отображалась бы пустой подписью «STARTUL» и ломала эстетику.
+        if b and (b.logo or b.logo_url):
+            top_brands.append(b)
     return render(request, 'shop/index.html', {
         'featured_categories': featured_categories,
         'total_products': total_products,
@@ -99,8 +108,52 @@ def index(request):
 
 
 def video_reviews_page(request):
-    videos = VideoReview.objects.filter(is_active=True)
-    return render(request, 'shop/video_reviews.html', {'videos': videos})
+    """Страница «Видео-обзоры» — видео, привязанные к товарам.
+
+    Каждый ролик — это товар с непустым `video_url`. Поддерживает поиск по
+    названию товара (?q=).
+    """
+    q = (request.GET.get('q') or '').strip()
+    qs = (Product.objects.exclude(video_url='')
+          .exclude(image_url='')
+          .only('id', 'name', 'image_url', 'video_url', 'article', 'video_blocked'))
+    if q:
+        ql = q.lower()
+        from django.db.models.functions import Lower
+        qs = qs.annotate(_ln=Lower('name')).filter(_ln__contains=ql)
+    # video_blocked=False (рабочие) сначала, затем по имени
+    products = list(qs.order_by('video_blocked', 'name')[:200])
+
+    yt_id_re = re.compile(
+        r'(?:youtube\.com/(?:embed/|watch\?v=)|youtu\.be/)([\w-]{6,})')
+    videos = []
+    for p in products:
+        url = p.video_url or ''
+        ym = yt_id_re.search(url)
+        yid = ym.group(1) if ym else ''
+        if yid:
+            src = f'https://www.youtube.com/embed/{yid}?rel=0&modestbranding=1'
+            kind = 'youtube'
+            thumb = f'https://i.ytimg.com/vi/{yid}/hqdefault.jpg'
+        elif any(host in url for host in (
+                'rutube.ru', 'vimeo.com', 'player.vimeo.com',
+                'vk.com/video', 'vk.com/video_ext', 'ok.ru/videoembed')):
+            # Сторонние плееры — отдаём как iframe, не как HTML5 video.
+            src = url
+            kind = 'iframe'
+            thumb = p.image_url
+        else:
+            # Скорее всего прямая ссылка на mp4 — HTML5 плеер.
+            src = url
+            kind = 'video'
+            thumb = p.image_url
+        videos.append({
+            'title': p.name, 'src': src, 'kind': kind,
+            'youtube_id': yid, 'thumb': thumb, 'product_id': p.id,
+        })
+    return render(request, 'shop/video_reviews.html',
+                  {'videos': videos, 'q': q,
+                   'total': Product.objects.exclude(video_url='').count()})
 
 
 def catalog(request):

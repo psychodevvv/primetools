@@ -45,6 +45,9 @@ class Product(models.Model):
         help_text='Ссылка на видео-обзор (YouTube embed или прямая ссылка на .mp4).')
     video_file = models.FileField(upload_to='product_videos/', blank=True, null=True,
         help_text='Видео-файл (mp4). Используется, если ссылка пустая.')
+    video_blocked = models.BooleanField(default=False,
+        help_text='True если YouTube/Rutube запретил встраивание (Error 153). '
+                  'Такие видео отправляем в конец списка.')
     in_stock = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

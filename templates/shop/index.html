@@ -21,7 +21,11 @@
     border-radius:6px 0 0 0;
   }
   .zh-cats__list { padding:6px 0; flex:1; position:relative; }
-  .zh-cat-wrap { position:relative; }
+  /* В отличие от обычного дропдауна — выпадайка должна открываться от
+     ВЕРХА всей колонки каталога, а не от ховернутой строки. Для этого
+     .zh-cat-wrap делаем нестроящим absolute-якорь (position:static),
+     и фишка опускается на .zh-cats__list (он relative). */
+  .zh-cat-wrap { position:static; }
   .zh-cat {
     display:flex; align-items:center; gap:12px;
     padding:11px 16px 11px 18px;
@@ -33,22 +37,35 @@
   .zh-cat:hover { background:#fff; color:var(--accent); }
   .zh-cat-wrap:hover .zh-cat__icon { background:var(--accent-soft); color:var(--accent); }
 
-  /* ── Всплывающее меню L2 (группы) ── */
+  /* ── Всплывающее меню L2 (группы) — полная высота блока каталога ── */
   .zh-flyout {
-    position:absolute; top:0; left:100%;
-    min-width:300px; max-width:340px;
+    position:absolute; top:0; bottom:0; left:100%;
+    width:300px;
     background:#fff; border-radius:0 6px 6px 0;
     box-shadow:6px 8px 22px rgba(0,0,0,.18);
-    padding:8px 0; z-index:50;
+    z-index:50;
+    /* overflow:visible — чтобы L3-панель НЕ обрезалась.
+       Внутри для вертикального скролла — отдельный wrapper .zh-flyout__scroll. */
+    overflow:visible;
     visibility:hidden; opacity:0;
     transform:translateX(-4px);
     transition:opacity .12s ease, transform .15s ease, visibility 0s .12s;
   }
+  /* Внутренний контейнер L2 — он скроллится по Y, L3 живёт вне него. */
+  .zh-flyout__scroll {
+    height:100%; overflow-y:auto; padding:8px 0;
+    scrollbar-width:thin;
+  }
+  .zh-flyout__scroll::-webkit-scrollbar { width:6px; }
+  .zh-flyout__scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.18); border-radius:3px; }
   .zh-cat-wrap.has-flyout:hover > .zh-flyout {
     visibility:visible; opacity:1; transform:translateX(0);
     transition:opacity .12s ease, transform .15s ease;
   }
-  .zh-fl-item-wrap { position:relative; }
+  /* L3 (подгруппы) тоже якорится к .zh-cats__list, а не к строке группы,
+     чтобы открывалось как отдельная панель справа от L2 и тянулось на всю
+     высоту блока каталога. */
+  .zh-fl-item-wrap { position:static; }
   .zh-fl-item {
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:10px 16px; color:var(--heading); font-size:13.5px;
@@ -59,14 +76,17 @@
   .zh-fl-chev { flex-shrink:0; color:var(--text-dim); }
   .zh-fl-item-wrap.has-sub:hover .zh-fl-chev { color:var(--accent); }
 
-  /* ── Подменю L3 (подгруппы) ── */
+  /* ── Подменю L3 (подгруппы) — справа от L2, такая же панель на всю высоту.
+     Сейчас L3 — сиблинг .zh-flyout__scroll внутри L2, чтобы не клипался
+     внутренним скроллом. Показ — через JS по data-grp. */
   .zh-flyout--l3 {
-    top:-8px; min-width:280px; max-width:340px;
-    max-height:60vh; overflow-y:auto;
-    border-radius:6px;
+    top:0; bottom:0; left:100%;
+    width:300px;
+    border-radius:0 6px 6px 0;
     box-shadow:8px 10px 26px rgba(0,0,0,.20);
+    overflow:visible;
   }
-  .zh-fl-item-wrap.has-sub:hover > .zh-flyout--l3 {
+  .zh-flyout--l3.is-open {
     visibility:visible; opacity:1; transform:translateX(0);
     transition:opacity .12s ease, transform .15s ease;
   }
@@ -105,6 +125,139 @@
     padding:11px 18px;
     border-radius:0 6px 0 0;
   }
+  /* ── Промо-слайдер: стопка из 3 баннеров, пейджинг переключает страницы ── */
+  .promo-stack {
+    position:relative; flex:1;
+    background:#fff; border-radius:0 0 6px 0;
+    overflow:hidden;
+  }
+  /* Одна общая плашка со всеми фактами через разделители */
+  .promo-side {
+    position:absolute; top:10px; left:10px; z-index:8;
+    display:flex; flex-wrap:wrap; align-items:center; gap:0;
+    padding:6px 12px;
+    background:rgba(15,23,42,.88); color:#fff;
+    border-radius:16px;
+    box-shadow:0 4px 14px rgba(0,0,0,.28);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    max-width:calc(100% - 20px);
+    pointer-events:none;
+  }
+  .promo-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:3px 10px;
+    font-size:11px; font-weight:700; letter-spacing:.3px;
+    white-space:nowrap;
+    position:relative;
+  }
+  .promo-chip + .promo-chip::before {
+    content:''; position:absolute; left:-1px; top:20%; bottom:20%;
+    width:1px; background:rgba(255,255,255,.22);
+  }
+  .promo-chip svg { flex-shrink:0; opacity:.85; }
+  .promo-chip--red    { color:#fca5a5; }
+  .promo-chip--blue   { color:#93c5fd; }
+  .promo-chip--green  { color:#86efac; }
+  .promo-chip--yellow { color:#fcd34d; }
+  @media (max-width:900px) {
+    .promo-side { padding:5px 10px; }
+    .promo-chip { font-size:10px; padding:2px 8px; }
+  }
+  @media (max-width:560px) {
+    .promo-chip:nth-child(n+3) { display:none; }
+  }
+  .promo-page {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    gap:8px; padding:8px 8px 34px;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease;
+  }
+  .promo-page.active { opacity:1; pointer-events:auto; }
+  .promo-card {
+    position:relative;
+    flex:1; min-height:0; display:block;
+    border-radius:10px; overflow:hidden;
+    box-shadow:0 3px 10px rgba(15,23,42,.10);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .promo-card:hover {
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(15,23,42,.20);
+  }
+  .promo-card img {
+    width:100%; height:100%; display:block;
+    object-fit:cover; object-position:right center;
+  }
+  /* Оверлей с текстом на левой части каждого баннера */
+  .promo-card__over {
+    position:absolute; left:0; top:0; bottom:0;
+    width:44%; padding:14px 16px 14px 20px;
+    display:flex; flex-direction:column; justify-content:space-between; gap:6px;
+    color:#0a1430;
+    background:linear-gradient(90deg,
+      rgba(255,255,255,.94) 0%,
+      rgba(255,255,255,.85) 60%,
+      rgba(255,255,255,0) 100%);
+    pointer-events:none;
+  }
+  .promo-card__eye {
+    align-self:flex-start;
+    font-size:10px; font-weight:800; letter-spacing:1.4px;
+    text-transform:uppercase;
+    background:var(--accent); color:#fff;
+    padding:3px 10px; border-radius:20px;
+  }
+  .promo-card__title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(20px,2.6vw,32px);
+    letter-spacing:1px; line-height:.95;
+    color:#0a1430;
+  }
+  .promo-card__title span { color:var(--accent); }
+  .promo-card__btn {
+    align-self:flex-start;
+    background:#0a1430; color:#fff;
+    padding:6px 14px; border-radius:4px;
+    font-size:10px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.8px;
+    pointer-events:auto;
+  }
+  @media (max-width:900px) {
+    .promo-card__over { width:52%; padding:10px 12px; }
+    .promo-card__title { font-size:18px; }
+  }
+  @media (max-width:560px) {
+    .promo-card__over { width:60%; padding:8px 10px; }
+    .promo-card__title { font-size:15px; }
+    .promo-card__eye { font-size:9px; padding:2px 8px; }
+    .promo-card__btn { font-size:9px; padding:4px 10px; }
+  }
+  .promo-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:32px; height:32px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.90); color:#0a1430; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.20);
+    z-index:5;
+  }
+  .promo-nav:hover { background:#fff; }
+  .promo-nav--prev { left:6px; }
+  .promo-nav--next { right:6px; }
+  .promo-dots {
+    position:absolute; left:0; right:0; bottom:10px;
+    display:flex; justify-content:center; gap:6px;
+    z-index:5;
+  }
+  .promo-dot {
+    width:8px; height:8px; border-radius:50%; border:none;
+    background:rgba(15,23,42,.30); cursor:pointer;
+    transition:all .15s;
+  }
+  .promo-dot.active { background:var(--accent); width:20px; border-radius:4px; }
+  @media (max-width:900px) {
+    .promo-page { padding:6px 6px 30px; gap:6px; }
+  }
   .zh-slider {
     position:relative; flex:1;
     background:#fff;
@@ -124,7 +277,10 @@
   .zh-slide--1 { background:linear-gradient(135deg, #cc1f1f 0%, #ea4d2c 70%, #f97316 100%); color:#fff; }
   .zh-slide--2 { background:linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, #2a3a85 100%); color:#fff; }
   .zh-slide--3 { background:linear-gradient(135deg, #0d9488 0%, #15803d 60%, #65a30d 100%); color:#fff; }
-  .zh-slide__body { flex:1; max-width:540px; }
+  .zh-slide--p1 { background:linear-gradient(135deg, #f4f4f5 0%, #e4e4e7 100%); }
+  .zh-slide--p2 { background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+  .zh-slide--p3 { background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+  .zh-slide__body { flex:1; max-width:520px; min-width:0; }
   .zh-slide__eye {
     display:inline-flex; align-items:center;
     background:rgba(255,255,255,.18); color:#fff;
@@ -153,10 +309,32 @@
   }
   .zh-slide__btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.25); }
   .zh-slide__art {
-    flex-shrink:0; width:200px; height:200px;
-    opacity:.85;
+    flex-shrink:0; width:clamp(260px, 44%, 460px);
+    height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px 8px;
   }
   .zh-slide__art svg { width:100%; height:100%; }
+  .zh-slide__art img {
+    max-width:100%; max-height:100%; width:auto; height:auto;
+    object-fit:contain; display:block;
+    filter:drop-shadow(0 14px 26px rgba(0,0,0,.35));
+  }
+  /* Слайд «только фото» — картинка вписана в полный блок (contain),
+     фон-градиент как «карточка», без обрезки. */
+  .zh-slide--photo { padding:0; align-items:stretch; }
+  .zh-slide--photo .zh-slide__art {
+    position:absolute; inset:0; width:100%; height:100%;
+    padding:28px 40px;
+  }
+  .zh-slide--photo .zh-slide__art img {
+    width:100%; height:100%; max-width:100%; max-height:100%;
+    object-fit:contain;
+    filter:drop-shadow(0 20px 30px rgba(0,0,0,.25));
+  }
+  @media (max-width:768px) {
+    .zh-slide--photo .zh-slide__art { padding:18px 22px; }
+  }
   .zh-nav {
     position:absolute; top:50%; transform:translateY(-50%);
     width:38px; height:38px; border-radius:50%; border:none;
@@ -519,23 +697,19 @@
   @media (max-width:768px) {
   }
 
-  /* ── ВИДЕО-ОБЗОРЫ ── */
-  /* ── ВИДЕО-СЛАЙДЕР — бесконечный как у брендов, тянется руками ── */
-  .vr-strip {
-    overflow:hidden; cursor:grab; user-select:none;
-    -webkit-user-select:none; touch-action:pan-y;
-    padding:4px 0 8px;
-    mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);
-    -webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);
+  /* ── ВИДЕО-ОБЗОРЫ — 4 рандомных в ряд (статичная сетка) ── */
+  .vr-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:18px;
   }
-  .vr-strip:active { cursor:grabbing; }
-  .vr-track { display:flex; gap:16px; will-change:transform; }
+  @media (max-width:1100px) { .vr-grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:540px)  { .vr-grid { grid-template-columns:1fr; gap:12px; } }
   .vr-card {
-    flex-shrink:0; width:320px;
-    background:#fff; border-radius:18px; overflow:hidden;
-    box-shadow:0 4px 18px rgba(15,18,24,.18);
-    cursor:pointer; pointer-events:auto;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; overflow:hidden; cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
   }
+  .vr-card:hover { transform:translateY(-3px); border-color:rgba(251,191,36,.45);
+    box-shadow:0 12px 30px rgba(0,0,0,.35); }
   .vr-card__thumb {
     position:relative; aspect-ratio:16/9; background:#0f1218;
     display:flex; align-items:center; justify-content:center; overflow:hidden;
@@ -555,12 +729,11 @@
   .vr-card:hover .vr-card__play { background:var(--accent); color:#fff; }
   .vr-card__title {
     padding:12px 14px 14px; font-size:13px; font-weight:600;
-    color:var(--heading); line-height:1.35;
+    color:#f1f5f9; line-height:1.35;
     overflow:hidden; display:-webkit-box;
     -webkit-line-clamp:2; -webkit-box-orient:vertical;
   }
   @media (max-width:560px) {
-    .vr-card { width:230px; }
     .vr-card__play { width:44px; height:44px; }
     .vr-card__play svg { width:18px; height:18px; }
   }
@@ -665,24 +838,32 @@
         </a>
         {% if cat.children.all %}
         <div class="zh-flyout" role="menu">
-          {% for group in cat.children.all|slice:":20" %}
-          <div class="zh-fl-item-wrap{% if group.children.all %} has-sub{% endif %}">
-            <a href="/catalog/?cat={{ group.slug }}" class="zh-fl-item">
-              <span>{{ group.name }}</span>
-              {% if group.children.all %}
-              <svg class="zh-fl-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
-              {% endif %}
-            </a>
-            {% if group.children.all %}
-            <div class="zh-flyout zh-flyout--l3" role="menu">
-              {% for sub in group.children.all|slice:":30" %}
-              <a href="/catalog/?cat={{ sub.slug }}" class="zh-fl-item">
-                <span>{{ sub.name }}</span>
+          <div class="zh-flyout__scroll">
+            {% for group in cat.children.all|slice:":20" %}
+            <div class="zh-fl-item-wrap{% if group.children.all %} has-sub{% endif %}"
+                 {% if group.children.all %}data-grp="{{ group.slug }}"{% endif %}>
+              <a href="/catalog/?cat={{ group.slug }}" class="zh-fl-item">
+                <span>{{ group.name }}</span>
+                {% if group.children.all %}
+                <svg class="zh-fl-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+                {% endif %}
               </a>
-              {% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+          {# L3-панели — сиблинги .zh-flyout__scroll, не клипаются им #}
+          {% for group in cat.children.all|slice:":20" %}
+            {% if group.children.all %}
+            <div class="zh-flyout zh-flyout--l3" data-grp="{{ group.slug }}" role="menu">
+              <div class="zh-flyout__scroll">
+                {% for sub in group.children.all|slice:":40" %}
+                <a href="/catalog/?cat={{ sub.slug }}" class="zh-fl-item">
+                  <span>{{ sub.name }}</span>
+                </a>
+                {% endfor %}
+              </div>
             </div>
             {% endif %}
-          </div>
           {% endfor %}
         </div>
         {% endif %}
@@ -694,69 +875,118 @@
     {% endif %}
   </aside>
 
-  <!-- Слайдер промо-баннеров -->
+  <!-- Промо-стопка карточек «а-ля Зубр» -->
   <div class="zh-promo">
-    <div class="zh-promo__head">ПРОМО</div>
-    <div class="zh-slider" id="zhSlider" aria-roledescription="carousel">
-      <div class="zh-slides" id="zhSlides">
-        <div class="zh-slide zh-slide--1">
-          <div class="zh-slide__body">
-            <div class="zh-slide__eye">Распродажа</div>
-            <h2 class="zh-slide__title">Скидки до <em>−35%</em> на инструмент</h2>
-            <p class="zh-slide__text">Цены ниже обычных — выбирайте сейчас, пока товары есть на складе.</p>
-            <a class="zh-slide__btn" href="/catalog/?sale=1">Смотреть</a>
-          </div>
-          <div class="zh-slide__art" aria-hidden="true">
-            <svg viewBox="0 0 200 200" fill="none">
-              <circle cx="100" cy="100" r="78" fill="rgba(255,255,255,.08)"/>
-              <path d="M50 130c8-30 30-60 70-72" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-              <circle cx="60" cy="60" r="4" fill="#fff"/><circle cx="140" cy="60" r="4" fill="#fff"/>
-              <circle cx="140" cy="140" r="4" fill="#fff"/>
-            </svg>
-          </div>
-        </div>
-        <div class="zh-slide zh-slide--2">
-          <div class="zh-slide__body">
-            <div class="zh-slide__eye">Каталог</div>
-            <h2 class="zh-slide__title">{{ total_products }}+ позиций в одном месте</h2>
-            <p class="zh-slide__text">От ручного инструмента до сложного оборудования — с гарантией.</p>
-            <a class="zh-slide__btn" href="/catalog/">В каталог</a>
-          </div>
-          <div class="zh-slide__art" aria-hidden="true">
-            <svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round">
-              <rect x="40" y="56" width="44" height="44" rx="4"/>
-              <rect x="116" y="56" width="44" height="44" rx="4"/>
-              <rect x="40" y="116" width="44" height="44" rx="4"/>
-              <rect x="116" y="116" width="44" height="44" rx="4"/>
-            </svg>
-          </div>
-        </div>
-        <div class="zh-slide zh-slide--3">
-          <div class="zh-slide__body">
-            <div class="zh-slide__eye">Доставка</div>
-            <h2 class="zh-slide__title">По всему Казахстану</h2>
-            <p class="zh-slide__text">Алматы, Астана, Шымкент и любой регион — быстро и удобно.</p>
-            <a class="zh-slide__btn" href="/#delivery">Подробнее</a>
-          </div>
-          <div class="zh-slide__art" aria-hidden="true">
-            <svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="20" y="80" width="100" height="60" rx="4"/>
-              <path d="M120 100h28l24 22v18h-52z"/>
-              <circle cx="60" cy="148" r="10"/><circle cx="148" cy="148" r="10"/>
-            </svg>
-          </div>
-        </div>
+    <div class="zh-promo__head">НОВОСТИ</div>
+    <div class="promo-stack" id="promoStack">
+      {# Слева — набор промо-стикеров с ключевыми фактами про магазин. #}
+      <div class="promo-side" aria-hidden="true">
+        <span class="promo-chip promo-chip--red">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+          20 000+ товаров
+        </span>
+        <span class="promo-chip promo-chip--blue">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Доставка по всему Казахстану
+        </span>
+        <span class="promo-chip promo-chip--green">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+          Официальная гарантия 24 мес
+        </span>
+        <span class="promo-chip promo-chip--yellow">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-3 7h6l-3 13"/></svg>
+          Быстрая отгрузка
+        </span>
       </div>
-      <button class="zh-nav zh-nav--prev" onclick="zhSlide(-1)" aria-label="Назад">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+      {# Каждая страница = 3 промо-баннера, стопка. Пейджер переключает страницы. #}
+      <div class="promo-page active">
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/Gazonokosilki-setevye_GS_33_1310.jpg" alt="" loading="eager">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Газонокосилки</div>
+            <div class="promo-card__title">СОВЕРШЕННАЯ<br><span>ЛЁГКОСТЬ</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/masla.png" alt="" loading="eager">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Смазочные</div>
+            <div class="promo-card__title">МАСЛА<br><span>EXTRA</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/Setevoy-trimmer.jpg" alt="" loading="eager">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Триммеры</div>
+            <div class="promo-card__title">ИДЕАЛЬНЫЙ<br><span>ПОМОЩНИК</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+      </div>
+      <div class="promo-page">
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/banner_teplo_01.jpg" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Тепловое</div>
+            <div class="promo-card__title">ТЁПЛО<br><span>НА ОБЪЕКТЕ</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/banner_ushm_akb01.jpg" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Акк. УШМ</div>
+            <div class="promo-card__title">БЕЗ<br><span>ПРОВОДОВ</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/pili_cepnie_zubr_01.jpg" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Пилы цепные</div>
+            <div class="promo-card__title">ВАЛИМ<br><span>ДЕРЕВО</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+      </div>
+      <div class="promo-page">
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/banner_moyka_04.png" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Мойки ВД</div>
+            <div class="promo-card__title">СМОЕТ<br><span>ВСЁ</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/banner_USHM_01.jpg" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">УШМ</div>
+            <div class="promo-card__title">РЕЖЕТ<br><span>МЕТАЛЛ</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+        <a class="promo-card" href="/catalog/">
+          <img src="/media/promo_banners/banner_motoblock_03.png" alt="" loading="lazy">
+          <div class="promo-card__over">
+            <div class="promo-card__eye">Мотоблоки</div>
+            <div class="promo-card__title">СИЛА<br><span>ЗЕМЛЕДЕЛЬЦА</span></div>
+            <span class="promo-card__btn">Смотреть</span>
+          </div>
+        </a>
+      </div>
+      <button class="promo-nav promo-nav--prev" id="promoPrev" aria-label="Назад">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
       </button>
-      <button class="zh-nav zh-nav--next" onclick="zhSlide(1)" aria-label="Вперёд">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+      <button class="promo-nav promo-nav--next" id="promoNext" aria-label="Вперёд">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
       </button>
-      <div class="zh-dots">
-        <button class="zh-dot active" data-i="0"></button>
-        <button class="zh-dot" data-i="1"></button>
-        <button class="zh-dot" data-i="2"></button>
+      <div class="promo-dots" id="promoDots">
+        <button class="promo-dot active" data-i="0" aria-label="Страница 1"></button>
+        <button class="promo-dot" data-i="1" aria-label="Страница 2"></button>
+        <button class="promo-dot" data-i="2" aria-label="Страница 3"></button>
       </div>
     </div>
   </div>
@@ -868,44 +1098,24 @@
     <div style="color:rgba(255,255,255,.55);font-size:13px;">{{ video_reviews|length }} ролик{{ video_reviews|length|pluralize:"ов" }}</div>
     {% endif %}
   </div>
-  <div class="vr-strip" id="vrStrip">
-    <div class="vr-track" id="vrTrack">
-      {# дважды повторяем для бесшовного цикла, как у брендов #}
-      {% for v in video_reviews %}
-      <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
-           data-title="{{ v.title|escapejs }}"
-           {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}>
-        <div class="vr-card__thumb">
-          {% if v.thumb %}
-            <img src="{{ v.thumb }}" alt="">
-          {% else %}
-            <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
-          {% endif %}
-          <div class="vr-card__play">
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
-          </div>
+  <div class="vr-grid" id="vrGrid" data-page-size="20">
+    {% for v in video_reviews %}
+    <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
+         data-title="{{ v.title|escapejs }}"
+         {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}>
+      <div class="vr-card__thumb">
+        {% if v.thumb %}
+          <img src="{{ v.thumb }}" alt="" loading="lazy">
+        {% else %}
+          <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
+        {% endif %}
+        <div class="vr-card__play">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
         </div>
-        {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
       </div>
-      {% endfor %}
-      {% for v in video_reviews %}
-      <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
-           data-title="{{ v.title|escapejs }}"
-           {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}>
-        <div class="vr-card__thumb">
-          {% if v.thumb %}
-            <img src="{{ v.thumb }}" alt="">
-          {% else %}
-            <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
-          {% endif %}
-          <div class="vr-card__play">
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
-          </div>
-        </div>
-        {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
-      </div>
-      {% endfor %}
+      {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
     </div>
+    {% endfor %}
   </div>
 </section>
 
@@ -1043,6 +1253,70 @@
 
 {% block extra_js %}
 <script>
+/* ── Промо-слайдер: страницы по 3 баннера, dots + prev/next + autoplay ── */
+(function() {
+  var stack = document.getElementById('promoStack');
+  if (!stack) return;
+  var pages = stack.querySelectorAll('.promo-page');
+  var dots  = stack.querySelectorAll('.promo-dot');
+  var prev  = document.getElementById('promoPrev');
+  var next  = document.getElementById('promoNext');
+  if (!pages.length) return;
+  var i = 0, timer;
+  function go(n) {
+    i = (n + pages.length) % pages.length;
+    pages.forEach(function(p, k){ p.classList.toggle('active', k === i); });
+    dots.forEach(function(d, k){ d.classList.toggle('active', k === i); });
+  }
+  function restart() { clearInterval(timer); timer = setInterval(function(){ go(i + 1); }, 6000); }
+  if (prev) prev.addEventListener('click', function(){ go(i - 1); restart(); });
+  if (next) next.addEventListener('click', function(){ go(i + 1); restart(); });
+  dots.forEach(function(d) {
+    d.addEventListener('click', function(){ go(+this.dataset.i); restart(); });
+  });
+  stack.addEventListener('mouseenter', function(){ clearInterval(timer); });
+  stack.addEventListener('mouseleave', restart);
+  restart();
+})();
+
+/* ── L3-подгруппы каталога: показ по data-grp на hover ── */
+(function() {
+  document.querySelectorAll('.zh-flyout > .zh-flyout__scroll .zh-fl-item-wrap.has-sub').forEach(function(item) {
+    var slug = item.dataset.grp; if (!slug) return;
+    var l2 = item.closest('.zh-flyout');
+    var l3 = l2.querySelector('.zh-flyout--l3[data-grp="' + slug + '"]');
+    if (!l3) return;
+    var hideT;
+    function show() {
+      clearTimeout(hideT);
+      // спрятать другие L3 в том же L2
+      l2.querySelectorAll('.zh-flyout--l3.is-open').forEach(function(o) {
+        if (o !== l3) o.classList.remove('is-open');
+      });
+      l3.classList.add('is-open');
+      item.classList.add('is-active');
+    }
+    function hide() {
+      hideT = setTimeout(function() {
+        l3.classList.remove('is-open');
+        item.classList.remove('is-active');
+      }, 100);
+    }
+    item.addEventListener('mouseenter', show);
+    item.addEventListener('mouseleave', hide);
+    l3.addEventListener('mouseenter', show);
+    l3.addEventListener('mouseleave', hide);
+  });
+  // при выходе из L2 — все L3 закрыть
+  document.querySelectorAll('.zh-cat-wrap.has-flyout').forEach(function(cw) {
+    cw.addEventListener('mouseleave', function() {
+      cw.querySelectorAll('.zh-flyout--l3.is-open').forEach(function(o) {
+        o.classList.remove('is-open');
+      });
+    });
+  });
+})();
+
 /* ── Слайдер главной (zh-slider) ── */
 (function() {
   var slides = document.querySelectorAll('.zh-slide');
@@ -1143,79 +1417,11 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') vrClose();
 });
 
-/* ── Бесконечный видео-слайдер: drag + автопрокрутка ── */
-(function() {
-  var strip = document.getElementById('vrStrip');
-  var track = document.getElementById('vrTrack');
-  if (!strip || !track) return;
-  function halfWidth() { return track.scrollWidth / 2; }
-  var offset = 0, speed = 0.35, dragging = false;
-  var startX = 0, startOffset = 0, lastMoveTs = 0, velocity = 0;
-  var idleResume = 0, dragStartedAt = 0, dragDistance = 0;
-  function applyTransform() {
-    var h = halfWidth();
-    if (h > 0) {
-      offset = ((offset % h) + h) % h;
-      offset -= h;
-    }
-    track.style.transform = 'translate3d(' + offset + 'px,0,0)';
-  }
-  function tick() {
-    if (!dragging && Date.now() > idleResume) {
-      if (Math.abs(velocity) > 0.05) {
-        offset += velocity;
-        velocity *= 0.94;
-      } else {
-        velocity = 0;
-        offset -= speed;
-      }
-      applyTransform();
-    }
-    requestAnimationFrame(tick);
-  }
-  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
-  function down(e) {
-    dragging = true;
-    startX = getX(e); startOffset = offset;
-    velocity = 0; lastMoveTs = performance.now();
-    dragStartedAt = lastMoveTs; dragDistance = 0;
-  }
-  function move(e) {
-    if (!dragging) return;
-    var x = getX(e), prev = offset;
-    offset = startOffset + (x - startX);
-    dragDistance = Math.abs(x - startX);
-    var now = performance.now();
-    var dt = Math.max(1, now - lastMoveTs);
-    velocity = (offset - prev) * (16 / dt);
-    lastMoveTs = now;
-    applyTransform();
-    if (e.cancelable && dragDistance > 4) e.preventDefault();
-  }
-  function up() {
-    if (!dragging) return;
-    dragging = false;
-    idleResume = Date.now() + 2000;
-  }
-  // ВАЖНО: клик по карточке считается «открыть видео» только если не было драга.
-  track.querySelectorAll('.vr-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      if (dragDistance > 6) { e.preventDefault(); e.stopPropagation(); return; }
-      vrPlay(card);
-    });
-  });
-  strip.addEventListener('mousedown', down);
-  window.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', up);
-  strip.addEventListener('mouseleave', up);
-  strip.addEventListener('touchstart', down, { passive: true });
-  strip.addEventListener('touchmove', move, { passive: false });
-  strip.addEventListener('touchend', up);
-  strip.addEventListener('touchcancel', up);
-  strip.addEventListener('mouseenter', function() { idleResume = Date.now() + 60000; });
-  strip.addEventListener('mouseleave', function() { idleResume = Date.now() + 400; });
-  requestAnimationFrame(tick);
-})();
+/* Клик по карточке видео — открыть модалку с плеером. */
+document.querySelectorAll('.vr-grid .vr-card').forEach(function(card) {
+  card.addEventListener('click', function() { vrPlay(card); });
+});
+
 
 /* ── Бесконечный бренд-слайдер с плавной автопрокруткой
        и перехватом мышкой / пальцем ── */

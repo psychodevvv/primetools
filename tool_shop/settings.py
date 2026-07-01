@@ -84,8 +84,8 @@ TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
 TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID', default='')
 
 # Контактные номера, отображаемые на сайте.
-CALL_NUMBER = config('CALL_NUMBER', default='+7 700 000 00 00')
-WHATSAPP_NUMBER = config('WHATSAPP_NUMBER', default='77000000000')
+CALL_NUMBER = config('CALL_NUMBER', default='+7 777 256 1177')
+WHATSAPP_NUMBER = config('WHATSAPP_NUMBER', default='77772561177')
 
 # SMS-шлюз для кодов подтверждения при регистрации (опционально).
 # Если не задан — код показывается на экране (демо-режим).

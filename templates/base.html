@@ -41,6 +41,10 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+    /* Глобальная страховка от горизонтального скролла на мобиле:
+       любые «выпирающие» элементы будут обрезаны, а не сдвигать страницу. */
+    html, body { max-width: 100vw; overflow-x: clip; }
+    img, video, iframe, svg { max-width: 100%; }
     body {
       background:
         radial-gradient(1200px 600px at 70% -10%, rgba(29,44,99,.55), transparent 60%),
@@ -1458,6 +1462,52 @@ window.addEventListener('resize', function() {
   });
 })();
 </script>
+{# ─── ПЛАВАЮЩИЙ САЙДБАР: ПОЗВОНИТЬ + WHATSAPP ─── #}
+<aside class="side-fab" aria-label="Быстрая связь">
+  <a href="tel:{{ CALL_NUMBER }}" class="side-fab__btn side-fab__btn--call">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.9v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7a2 2 0 0 1 1.72 2z"/>
+    </svg>
+    <span class="side-fab__lbl">Позвонить</span>
+  </a>
+  <a href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener"
+     class="side-fab__btn side-fab__btn--wa">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.5 3.5A10.4 10.4 0 0 0 12 .5 10.5 10.5 0 0 0 3.1 15.7L1.5 23.5l7.9-2.1a10.5 10.5 0 0 0 5 1.3h.1a10.5 10.5 0 0 0 6-19.2zM12 21c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-4.7 1.2 1.3-4.6-.2-.3A8.7 8.7 0 1 1 20.7 12 8.7 8.7 0 0 1 12 21zm4.8-6.5c-.3-.1-1.6-.8-1.8-.9s-.4-.1-.6.1-.7.9-.8 1c-.1.2-.3.2-.5.1a7.1 7.1 0 0 1-3.5-3c-.3-.5.3-.4.8-1.4a.4.4 0 0 0 0-.4c0-.1-.6-1.4-.8-1.9s-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3 5.3 5.3 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c.6.3 1.1.4 1.5.6a3.6 3.6 0 0 0 1.6.1 2.7 2.7 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .1-1.2c-.1-.2-.3-.3-.6-.4z"/>
+    </svg>
+    <span class="side-fab__lbl">Написать в WhatsApp</span>
+  </a>
+</aside>
+<style>
+  .side-fab {
+    position:fixed; right:16px; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:10px;
+    z-index:1500;
+  }
+  .side-fab__btn {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px; border-radius:14px;
+    color:#fff; font-weight:700; font-size:14px;
+    text-decoration:none;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);
+    transition:transform .15s, box-shadow .15s, filter .15s;
+    min-width:56px;
+  }
+  .side-fab__btn:hover { transform:translateY(-2px); filter:brightness(1.05);
+    box-shadow:0 12px 30px rgba(0,0,0,.34); }
+  .side-fab__btn svg { flex-shrink:0; width:22px; height:22px; }
+  .side-fab__btn--call { background:linear-gradient(140deg,#dc2626 0%,#b91c1c 100%); }
+  .side-fab__btn--wa   { background:linear-gradient(140deg,#25D366 0%,#128C7E 100%); }
+  .side-fab__lbl { white-space:nowrap; }
+  /* Мобильная версия — только иконки, круглые кнопки */
+  @media (max-width: 768px) {
+    .side-fab { right:12px; gap:8px; }
+    .side-fab__btn { padding:0; width:52px; height:52px; border-radius:50%;
+                     justify-content:center; }
+    .side-fab__btn svg { width:24px; height:24px; }
+    .side-fab__lbl { display:none; }
+  }
+</style>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

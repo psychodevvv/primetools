@@ -27,11 +27,13 @@ nano .env
 
 ## 3. Залить базу с товарами
 
-Локальный снапшот лежит в `db.snapshot.sqlite3` (207 МБ, был снят пока шёл скрейп).
-На PA через вкладку **Files** загрузить его в `~/magaz/` и переименовать:
+Локальный снапшот сжат → `db.snapshot.sqlite3.gz` (~25 МБ, влезает в лимит
+PA на 100 МБ). На PA через вкладку **Files** загрузить файл в `~/magaz/`
+и распаковать:
 
 ```bash
 cd ~/magaz
+gunzip db.snapshot.sqlite3.gz
 mv db.snapshot.sqlite3 db.sqlite3
 ```
 
@@ -97,6 +99,15 @@ application = get_wsgi_application()
 
 ```bash
 python -c "import sqlite3; s=sqlite3.connect('db.sqlite3'); d=sqlite3.connect('db.snapshot.sqlite3'); s.backup(d); d.close()"
+gzip -9 -f db.snapshot.sqlite3
 ```
 
-Залить `db.snapshot.sqlite3` на PA через Files, переименовать в `db.sqlite3`, нажать **Reload**.
+Залить `db.snapshot.sqlite3.gz` на PA через Files, потом:
+
+```bash
+cd ~/magaz
+gunzip -f db.snapshot.sqlite3.gz
+mv db.snapshot.sqlite3 db.sqlite3
+```
+
+Нажать **Reload** на вкладке Web.

@@ -1,44 +1,68 @@
 {% extends 'base.html' %}
-{% block title %}Видео-обзоры — PrimeTools{% endblock %}
+{% block title %}Видео-обзоры товаров — PrimeTools{% endblock %}
 {% block content %}
-<div class="container section">
- <div class="page-card page-card--dark">
-  <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5.4vw,52px);letter-spacing:1.5px;margin:0 0 6px;line-height:1;color:#fff;">
-    <span style="color:#fbbf24;">ВИДЕО</span>-ОБЗОРЫ
-  </h1>
-  <p style="color:rgba(255,255,255,.6);font-size:14px;margin:0 0 26px;">
-    {{ videos|length }} ролик{{ videos|length|pluralize:"ов" }} — кликните, чтобы посмотреть
-  </p>
+<section class="vrp">
+  <div class="vrp__head">
+    <h1 class="vrp__title">
+      <span class="vrp__title-y">ВИДЕО</span>-ОБЗОРЫ ТОВАРОВ
+    </h1>
+    <p class="vrp__sub">
+      {% if q %}
+        По запросу «{{ q }}» — {{ videos|length }} результат{{ videos|length|pluralize:"ов" }}
+        из {{ total }} роликов
+      {% else %}
+        {{ total }} ролик{{ total|pluralize:"ов" }} — кликните по карточке, чтобы посмотреть
+      {% endif %}
+    </p>
+    <form method="get" class="vrp__search" role="search">
+      <input type="text" name="q" value="{{ q|default:'' }}"
+             placeholder="Поиск по названию товара…"
+             class="vrp__search-input" autofocus>
+      <button type="submit" class="vrp__search-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Найти
+      </button>
+      {% if q %}<a href="{% url 'video_reviews' %}" class="vrp__search-clear">Сброс</a>{% endif %}
+    </form>
+  </div>
 
   {% if videos %}
-  <div class="vr-grid">
+  <div class="vrp__grid">
     {% for v in videos %}
-    <div class="vr-card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
+    <div class="vrp__card" data-src="{{ v.src|escapejs }}" data-kind="{{ v.kind }}"
+         data-title="{{ v.title|escapejs }}"
          {% if v.kind == 'youtube' %}data-yid="{{ v.youtube_id }}"{% endif %}
          onclick="vrPlay(this)">
-      <div class="vr-card__thumb">
+      <div class="vrp__thumb">
         {% if v.thumb %}
           <img src="{{ v.thumb }}" alt="" loading="lazy">
         {% else %}
-          <div class="vr-card__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
+          <div class="vrp__noimg"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg></div>
         {% endif %}
-        <div class="vr-card__play">
+        <div class="vrp__play">
           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 22,12 6,20"/></svg>
         </div>
       </div>
-      {% if v.title %}<div class="vr-card__title">{{ v.title }}</div>{% endif %}
+      <div class="vrp__cap">
+        <div class="vrp__name">{{ v.title }}</div>
+        <a href="/product/{{ v.product_id }}/" class="vrp__open"
+           onclick="event.stopPropagation();">К товару →</a>
+      </div>
     </div>
     {% endfor %}
   </div>
   {% else %}
-  <div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);">
-    Видео-обзоры пока не добавлены.
+  <div class="vrp__empty">
+    {% if q %}
+      Ничего не нашли по запросу «{{ q }}». Попробуй другое слово или
+      <a href="{% url 'video_reviews' %}" style="color:#fbbf24;">сбросить поиск</a>.
+    {% else %}
+      Видео-обзоры пока не добавлены.
+    {% endif %}
   </div>
   {% endif %}
- </div>
-</div>
+</section>
 
-<!-- модалка проигрывателя -->
 <div class="vr-modal" id="vrModal" onclick="if(event.target===this)vrClose()">
   <div class="vr-modal__box">
     <button class="vr-modal__close" onclick="vrClose()" aria-label="Закрыть">&times;</button>
@@ -47,31 +71,99 @@
 </div>
 
 <style>
-  .vr-grid {
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-    gap:18px;
+  /* Единый стилизованный блок на всю страницу — без «коробки в коробке». */
+  .vrp {
+    position:relative; min-height:calc(100vh - 200px);
+    margin:0; padding:48px 32px 64px;
+    background:
+      radial-gradient(900px 360px at 90% 110%, rgba(234,106,26,.22), transparent 60%),
+      radial-gradient(700px 320px at -10% -20%, rgba(37,99,235,.35), transparent 65%),
+      linear-gradient(135deg,#0f172a 0%,#1e293b 70%,#0b1220 100%);
   }
-  .vr-card {
-    background:#fff; border-radius:18px; overflow:hidden; cursor:pointer;
-    box-shadow:0 6px 22px rgba(0,0,0,.25);
-    transition:transform .2s, box-shadow .2s;
+  .vrp::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(45deg,
+      rgba(255,255,255,.018) 0 18px, transparent 18px 36px);
   }
-  .vr-card:hover { transform:translateY(-4px); box-shadow:0 14px 32px rgba(0,0,0,.35); }
-  .vr-card__thumb {
+  .vrp > * { position:relative; z-index:1; }
+  .vrp__head {
+    max-width:1300px; margin:0 auto 32px;
+  }
+  .vrp__title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(28px,5.4vw,52px); letter-spacing:1.5px;
+    margin:0 0 6px; line-height:1; color:#fff;
+  }
+  .vrp__title-y { color:#fbbf24; }
+  .vrp__sub { color:rgba(255,255,255,.6); font-size:14px; margin:0 0 22px; }
+  .vrp__search { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .vrp__search-input {
+    flex:1; min-width:280px; max-width:520px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+    color:#fff; font-size:14px;
+    padding:11px 14px; border-radius:10px; outline:none;
+    transition:border-color .15s, background .15s;
+  }
+  .vrp__search-input::placeholder { color:rgba(255,255,255,.45); }
+  .vrp__search-input:focus { border-color:#fbbf24; background:rgba(255,255,255,.12); }
+  .vrp__search-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    background:#fbbf24; color:#0a1430; border:none;
+    padding:11px 18px; border-radius:10px; cursor:pointer;
+    font-weight:700; font-size:13px; transition:background .15s, transform .1s;
+  }
+  .vrp__search-btn:hover { background:#fbcf4f; transform:translateY(-1px); }
+  .vrp__search-clear {
+    color:rgba(255,255,255,.55); font-size:13px; padding:0 6px;
+  }
+  .vrp__search-clear:hover { color:#fbbf24; }
+
+  .vrp__grid {
+    max-width:1300px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:18px;
+  }
+  @media (max-width:1100px) { .vrp__grid { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:760px)  { .vrp__grid { grid-template-columns:repeat(2,1fr); gap:12px; } }
+  @media (max-width:420px)  { .vrp__grid { grid-template-columns:1fr; } }
+
+  .vrp__card {
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; overflow:hidden; cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .vrp__card:hover { transform:translateY(-3px); border-color:rgba(251,191,36,.45);
+    box-shadow:0 12px 30px rgba(0,0,0,.4); }
+  .vrp__thumb {
     position:relative; aspect-ratio:16/9; background:#0f1218;
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
-  .vr-card__thumb img { width:100%; height:100%; object-fit:cover; }
-  .vr-card__noimg { color:#888; }
-  .vr-card__play {
-    position:absolute; width:60px; height:60px; border-radius:50%;
+  .vrp__thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .vrp__noimg { color:#888; }
+  .vrp__play {
+    position:absolute; width:54px; height:54px; border-radius:50%;
     background:rgba(255,255,255,.95); color:var(--accent);
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 10px 24px rgba(0,0,0,.35);
   }
-  .vr-card__play svg { width:22px; height:22px; margin-left:4px; }
-  .vr-card__title { padding:13px 16px; font-size:14px; font-weight:600; color:var(--heading); line-height:1.35; }
+  .vrp__play svg { width:20px; height:20px; margin-left:3px; }
+  .vrp__card:hover .vrp__play { background:var(--accent); color:#fff; }
+  .vrp__cap { padding:12px 14px 14px; display:flex; flex-direction:column; gap:8px; }
+  .vrp__name {
+    font-size:13px; font-weight:600; color:#f1f5f9; line-height:1.35;
+    overflow:hidden; display:-webkit-box;
+    -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  }
+  .vrp__open {
+    font-size:12px; color:rgba(251,191,36,.85); align-self:flex-start;
+    transition:color .12s;
+  }
+  .vrp__open:hover { color:#fbbf24; }
+  .vrp__empty {
+    max-width:1300px; margin:0 auto; text-align:center;
+    padding:60px 20px; color:rgba(255,255,255,.6);
+  }
 
+  /* Модалка проигрывателя */
   .vr-modal {
     display:none; position:fixed; inset:0; z-index:2000;
     background:rgba(8,10,14,.85);
@@ -86,15 +178,11 @@
   .vr-modal__close {
     position:absolute; top:-46px; right:0; width:40px; height:40px; border:none;
     background:rgba(255,255,255,.15); color:#fff; border-radius:50%; cursor:pointer;
-    font-size:24px; line-height:1;
+    font-size:24px; line-height:1; z-index:2;
   }
   .vr-modal__close:hover { background:var(--accent); }
   .vr-modal__player { width:100%; height:100%; }
   .vr-modal__player iframe, .vr-modal__player video { width:100%; height:100%; border:0; }
-
-  @media (max-width:560px) {
-    .vr-grid { grid-template-columns:1fr; gap:14px; }
-  }
 </style>
 
 <script>
@@ -103,13 +191,13 @@ function vrPlay(card) {
   var player = document.getElementById('vrPlayer');
   var modal = document.getElementById('vrModal');
   if (kind === 'youtube' && yid) {
-    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid + '?rel=0"' +
+    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + yid + '?rel=0&autoplay=1"' +
       ' frameborder="0" allow="accelerometer; clipboard-write; encrypted-media;' +
       ' gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
   } else if (kind === 'iframe') {
     player.innerHTML = '<iframe src="' + src + '" frameborder="0" allowfullscreen></iframe>';
   } else {
-    player.innerHTML = '<video src="' + src + '" controls preload="metadata" playsinline></video>';
+    player.innerHTML = '<video src="' + src + '" controls autoplay preload="metadata" playsinline></video>';
   }
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
